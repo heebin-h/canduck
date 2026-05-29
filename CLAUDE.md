@@ -108,3 +108,67 @@
 4. (필요 시) `git log --oneline -10` 으로 최근 commit 확인
 
 이 4단계만 거치면 즉시 작업 재개 가능.
+
+---
+
+## 8. PR 워크플로우 — Git Flow lite (2026-05-29 합의)
+
+브랜치 전략 = **`main` + `develop` + feature**. `release/*` · `hotfix/*` 는 W9 (RPi systemd 배포 시작) 시점에 도입 검토.
+
+### 8.1. 브랜치 정의
+| 브랜치 | 의미 | 직접 commit | PR target | 도입 시점 |
+|---|---|---|---|---|
+| `main` | 배포 안정본 (release tag `v0.x.y`) | ❌ | release/hotfix only | W9+ 부터 의미 |
+| `develop` | 개발 통합 trunk (default branch) | ❌ | ✅ feature PR 기본 target | 지금부터 |
+| `w{n}/t{m}-{slug}` | feature (작업 브랜치) | ✅ Claude | (자기 자신) | task 단위 |
+| `release/*` | 배포 준비 (선택) | ❌ | develop + main | W9+ 검토 |
+| `hotfix/*` | 운영 버그 긴급 (필수) | ❌ | main + develop | W9+ (첫 배포 직후) |
+
+- 작업 브랜치 명명: `w{week}/t{task}-{kebab-slug}` (예: `w0/t00-initial-scaffolding`, `w1/t03-pcb-schematic`)
+- 작업 브랜치는 항상 **develop에서 분기 → develop으로 머지**.
+- main은 W0~W8 동안 `Initial commit` 또는 첫 release tag 직전 상태로 frozen.
+
+### 8.2. 역할 분담
+| 단계 | Claude | heebin |
+|---|---|---|
+| develop 기준 작업 브랜치 생성 | ✅ | — |
+| 코드/문서 변경 + commit (msg `W{n}-T{m}: <slug>`) | ✅ | — |
+| `git push -u origin <branch>` | — | ✅ |
+| GitHub 웹에서 PR open (target = **`develop`**) + 본문 paste | — | ✅ |
+| PR 본문 작성 + `pbcopy` 로 클립보드 복사 | ✅ | — |
+| review (선택) + Merge 클릭 | — | ✅ |
+| merge 후 `git checkout develop && git pull` | ✅ | — |
+| 다음 task 진입 | ✅ | — |
+
+### 8.3. PR 본문 포맷
+```markdown
+## What
+<1~3줄 요약>
+
+## Files
+- 그룹별 / 디렉토리별 묶어서
+
+## Notes
+- 결정사항 / 트레이드오프 / 충돌 해결 내역
+```
+
+### 8.4. 충돌 해결 원칙
+- rebase 시 작업 브랜치 commit 쪽 우선 (`git checkout --theirs ...`)
+- GitHub 자동 생성 파일 (README/.gitignore placeholder)은 로컬본 채택
+
+### 8.5. main 보호
+- main 직접 commit 금지
+- main은 W9+ release/hotfix PR로만 갱신
+- force-push 금지
+
+### 8.6. 초기 셋업 (heebin 1회)
+1. credential helper: `git config --global credential.helper osxkeychain`
+2. develop 브랜치 push: `git push -u origin develop`
+3. **GitHub repo Settings → Branches → Default branch → `develop` 으로 변경** (이후 PR 기본 target = develop)
+4. (선택) main branch protection rule — direct push 금지, PR-only
+
+### 8.7. W9 시점에 검토할 것 (메모)
+- `release/*` 도입 여부 (배포 빈도가 잦으면 도입)
+- `hotfix/*` 도입 (운영 버그 응답 — 거의 필수)
+- semver tag 정책 (`v0.1.0` 부터, MAJOR.MINOR.PATCH)
+- main branch protection 강화 (review approval 필수 등)
