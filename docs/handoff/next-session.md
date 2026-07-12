@@ -33,7 +33,7 @@
 ### 1.4. 아직 안 끝난 것 (진짜 loose end)
 - ⏸ **`w0/t02c-session-log-sync` 브랜치** — 이번 세션 turn-6 로그만 담은 작은 브랜치, 아직 push/PR/merge 안 됨. 다음 세션에서 먼저 처리하거나 지금 push해도 됨.
 - ⏸ **BOM 발주 결제** — 2026-07-12 turn-8~10에서 최종 confirm 완료 (RPi4 보유분 사용, 전량 JLC 어셈블리, 배터리·스코프 등 보류, 랩 도구 최소 셋 — `hardware/parts.md` "발주 확정"/"최소화" 참고, 코어 ~606K). 배치 1(~446K) 결제 실행만 남음 (heebin, 이번 주 내 권장).
-- ⚠️ **W1 설계 제약 추가**: 전량 JLC 어셈블리 확정이라 schematic 부품 선정은 JLC Parts Library(Basic 우선) 재고에 맞출 것.
+- ⚠️ **W1 설계 제약 추가**: 전량 JLC 어셈블리 확정이라 schematic 부품 선정은 JLC Parts Library(Basic 우선) 재고에 맞출 것. **W2 발주 시 스텐실 불필요** (기존 스킬 문서의 "Stencil 포함 발주"는 직접 실장 전제 — 무시). schematic-spec의 J_A4 핀수 불일치(6핀 표기 vs 신호 8개)는 W1에서 8핀으로 정정 (`docs/reports/W0-T02e-order-final.md` 검증표 참고).
 - ⏸ **roadmap 일정 재캘린더링** — roadmap.md 작성 시점(W0~W12) 이후 실제로 한 달 넘게 정체된 구간이 있었음. 시작일을 다시 못박을지는 heebin 판단.
 - ⏸ **KiCad 9 설치** (heebin) — W1 진입 전제조건, 아직 확인 안 됨.
 

@@ -37,6 +37,20 @@
 - **heebin**: ① `w0/t02d-handoff-update` push + PR(→main) merge ② parts.md 체크리스트로 배치 1 결제 (~435K, **Ali 항목이 W4 크리티컬 패스 — 이번 주 내**) ③ 보유 장비(멀티미터/인두/PSU 등) 있으면 체크리스트에서 차감 ④ KiCad 9 설치
 - **Claude (다음 세션)**: W1 진입 — `w1/t03-pcb-schematic` 분기, schematic 설계 시 JLC Parts Library 재고 부품 우선 선정, 입고 시작되면 parts.md 체크리스트 "입고" 열로 트래킹
 
+## 전체 자료 대조 검증 (2026-07-12, canduck 전 문서 통독 결과)
+
+`schematic-spec.md` / `kicad-workflow.md` / `architecture.md` / `power-budget.md` / `README.md` 대조로 확인·발견된 사항:
+
+| # | 항목 | 내용 | 조치 |
+|---|---|---|---|
+| 1 | **스텐실 발주 불필요** | schematic-spec §KiCad 워크플로우·kicad-workflow §5.2가 "Stencil 포함 발주(+5K)"를 명시하지만 이는 **직접 실장 전제** — 전량 JLC 어셈블리로 바뀌었으므로 W2 발주 시 스텐실 체크 금지 | 핸드오프 W2 주의로 기록 |
+| 2 | **J_A4 핀수 불일치 (스펙 버그)** | schematic-spec 서두는 "Board A↔B 6핀 JST-XH"인데 J_A4 신호 목록은 8개(+5V, +6V, +3V3, GND×2, SDA, SCL, VBAT_SENSE) | W1 schematic 작업 시 8핀으로 정정 필요 — 배선 키트는 어차피 JST-XH 종합 키트라 발주 영향 없음 |
+| 3 | LCD 커넥터 | J_B3는 JST-PH 1.25mm 8핀 또는 FFC — 일반 키트에 없는 규격이지만 Waveshare 모듈에 전용 케이블 동봉이 일반적 | 입고 시 동봉 여부 확인, 없으면 소액 추가 발주 |
+| 4 | 충전 입력 J_A3 | 배터리 보류로 v1 브링업에선 미사용 | PCB 풋프린트는 유지 (배터리 도입 시 그대로 사용) |
+| 5 | KiCad 버전 표기 불일치 | schematic-spec은 8.x, kicad-workflow·roadmap은 9.x 기준 | W1은 KiCad 9 기준으로 진행 (roadmap 우선) |
+| 6 | README 낡음 | "RPi 5 8GB + 액티브 쿨러", 배터리 확정 표기 등 이번 결정 미반영 | 이번 커밋에서 README 정정 |
+| 7 | 발주 리스트 완결성 | schematic-spec의 오프보드 부품(서보 JST-PH 3핀×10, 모터 2핀×2, 스피커, 토글 스위치, XT60)과 parts.md 체크리스트 대조 — 누락 없음 | - |
+
 ## Context notes
 
 - 발주 결제·입고 확인은 heebin 영역 (CLAUDE.md §4) — Claude는 리스트 확정까지만.
