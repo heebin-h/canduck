@@ -1,26 +1,31 @@
-# PR — 핸드오프 갱신 + 세션 로그 + BOM 발주 확정
+# PR — Phase 1 Sourcing 확정: 핸드오프 갱신 + BOM 최종 + 보고서 4종
 
 - **Branch**: `w0/t02d-handoff-update` → `main`
 - **Date**: 2026-07-12
 - **Base**: `main` (`0894494`)
-- **Commits**: 4 — 세션 로그 turn-6/7/8, 핸드오프 전면 갱신, BOM 발주 확정
 
 ## What
-Phase 0 마무리 문서 묶음 + 다음 세션(BOM 발주 논의) 결과까지 하나의 PR로 정리.
+Phase 0 마무리 문서 + BOM 발주 확정 전 과정(4차 심사)을 하나의 PR로 정리.
 
-1. **핸드오프 갱신** (`docs/handoff/next-session.md`): 2026-05-25 시점에 멈춰있던 파일을 전면 재작성 — main 단일 트렁크 정책, PR #1~#4 머지 현황, loose end, W1 진입 계획, 복붙 재진입 프롬프트, sandbox 제약 노트.
-2. **세션 로그** (`docs/logs/session-2026-07-12.md`): turn-6(Phase 0 완료 확인) / turn-7(핸드오프 갱신) / turn-8(BOM 발주 논의) append. 기존 `w0/t02c-session-log-sync` 브랜치는 이 브랜치로 rebase 통합됨(별도 PR 불필요).
-3. **BOM 발주 확정** (`hardware/parts.md`): 2026-07-12 발주 논의 결과 반영.
-   - RPi5 8GB→4GB (-30K), USB 현미경 제외·루페 유지 (-100K) → 합계 1,363K → **1,233K**
-   - **실장 방식 = 혼합**: Board A(파워)만 JLCPCB SMT 어셈블리(부품은 W2 PCB 발주 시 JLC Parts Library 통합 발주), Board B(HAT)는 직접 실장
-   - **발주 3배치 분리**: ①지금(W0~W1, lead time 역산) ②W2(PCB fab + Board A JLC 부품) ③보류(3D 외형 W10, VL53L0X W8)
-   - dev board용 브레이크아웃 모듈 3종은 스킵 확정 — W3는 LCD+UART까지만
+1. **핸드오프 전면 갱신** (`docs/handoff/next-session.md`) — 상태 스냅샷, loose end, W1 진입 계획·설계 제약, 복붙 프롬프트.
+2. **BOM 최종 확정** (`hardware/parts.md`) — 심사 이력 순서대로:
+   - RPi5 → **보유 RPi4** (전원 설계 무변경, HAT 호환 — `docs/reports/W0-T02e-order-final.md`)
+   - **전량 JLCPCB SMT 어셈블리** (핫에어 장비군 삭제, W1 부품은 JLC Parts Library 제약)
+   - 배터리·스코프 등 보류 (트리거 명시), 랩 도구 → 멀티미터만
+   - 품목 심사(turn-15): LCD·마이크·스피커 탈락 → **3-in-1 USB 카메라 대체**, 모터 재선정
+   - **최종 배치 1 ~249K** (A 확정 97K + 모터 52K + 카메라 ~100K), 배치 2(W2 JLC) ~155K 이하
+3. **보고서 4종** (`docs/reports/`) — W0-T02e(발주 확정+전 문서 대조 검증 7건), W0-T02f(장비별 구매 사유), W0-T02g(모터 선정: MG90S×10 통일 + N20 100RPM, 스펙·출처 포함).
+4. **README 정정** — RPi4/전량 어셈블리/배터리 보류 반영.
 
 ## Files
-- `docs/handoff/next-session.md` — 전면 재작성 + BOM loose end를 "결제만 남음"으로 갱신
-- `docs/logs/session-2026-07-12.md` — turn-6/7/8 append
-- `hardware/parts.md` — U1(4GB)/현미경 행, 총합, "발주 확정 (2026-07-12)" 섹션
+- `hardware/`: parts.md(최종 BOM+발주 체크리스트), power-budget.md(RPi4 노트)
+- `docs/reports/`: W0-T02e-order-final.md, W0-T02f-equipment-rationale.md, W0-T02g-motor-selection.md (모두 new)
+- `docs/handoff/next-session.md`, `README.md`, `docs/logs/session-2026-07-12.md` (turn-6~16)
+
+## Notes
+- W1 설계 파급: Board B에서 I2S·오디오 앰프·J_B3/B4/B6 삭제 검토, J_A4 6핀→8핀 정정, W2 스텐실 발주 불필요.
+- 미결: v1 표정(face.py) 표시 수단(LCD 탈락), 벤치 PSU 보유 확인(유일한 7.4V 급전원), roadmap 재캘린더링.
 
 ## Merge 후 heebin 액션
-1. 배치 1 결제 (이번 주 내 — AliExpress 1~3주 lead time이라 늦으면 W4 모션 작업 밀림)
-2. KiCad 9 설치 → 되면 다음 세션에서 W1 (`w1/t03-pcb-schematic`) 착수
+1. parts.md 체크리스트로 배치 1 결제 (~249K, Ali 항목 이번 주 내)
+2. KiCad 9 설치 → 다음 세션 W1 (`w1/t03-pcb-schematic`) 착수

@@ -1,4 +1,4 @@
-# W0-T02e — BOM 발주 확정 (RPi4 전환 + 최소화 + 발주 실행 리스트)
+ # W0-T02e — BOM 발주 확정 (RPi4 전환 + 최소화 + 발주 실행 리스트)
 
 > 2026-07-12, turn 8~12. 브랜치 `w0/t02d-handoff-update` (커밋 W0-T02e~h + 구조 정정).
 > Phase 1 (Sourcing) 진입 산출물 — `hardware/parts.md` 최종 확정.
