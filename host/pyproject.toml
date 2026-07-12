@@ -1,0 +1,42 @@
+[project]
+name = "canduck"
+version = "0.1.0"
+description = "Canduck desktop pet host daemon (runs on RPi 5)"
+requires-python = ">=3.11"
+dependencies = [
+    "paho-mqtt>=2.1.0",
+    "pyserial-asyncio>=0.6",
+    "pygame>=2.6.0",
+    "pillow>=10.4.0",
+    "smbus2>=0.5.0",
+    "spidev>=3.6",
+    "pydantic>=2.8.0",
+    "pydantic-settings>=2.4.0",
+    "structlog>=24.4.0",
+    "sounddevice>=0.5.0",
+    "numpy>=1.26.0",
+]
+
+[project.optional-dependencies]
+voice = [
+    "pvporcupine>=3.0.0",
+]
+dev = [
+    "ruff>=0.6.0",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+]
+
+[project.scripts]
+canduck-daemon = "canduck.daemon:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["canduck"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

@@ -1,0 +1,27 @@
+[Unit]
+Description=Canduck host daemon
+After=network-online.target mosquitto.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=heebin
+Group=heebin
+WorkingDirectory=/opt/canduck
+EnvironmentFile=-/etc/canduck/canduck.env
+ExecStart=/opt/canduck/.venv/bin/canduck-daemon
+Restart=on-failure
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=canduck
+
+# 권한
+SupplementaryGroups=dialout gpio spi i2c
+
+# 안전망
+TimeoutStopSec=5
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
