@@ -1,10 +1,10 @@
 # PR — W0-T02: parts.md 재검토
 
-- **Branch**: `w0/t02-parts-review` → **⚠️ target = `w0/t00d-main-trunk-policy` (main 아님, 아래 § Notes 참고)**
-- **Date**: 2026-07-12
-- **Base / Compare**: base=`w0/t00d-main-trunk-policy` (`2b1fe35`) ← compare=`w0/t02-parts-review` (rebase 후 tip)
-- **Commits**: 2 — parts.md 재검토 + PR 본문 (rebase로 `w0/t00d-main-trunk-policy` 위에 올라감)
-- **Diff (이 브랜치 고유분만)**: 1 file, `hardware/parts.md` (+27/-6)
+- **Branch**: `w0/t02-parts-review` → `main`
+- **Date**: 2026-07-12 (2026-07-12 재갱신: `w0/t00d-main-trunk-policy`가 main에 머지되어 그 위로 재rebase, 이제 스택 의존성 없음)
+- **Base / Compare**: base=`main` (`2a1dfa3`) ← compare=`w0/t02-parts-review` (`28ca5cc`)
+- **Commits**: 3 — parts.md 재검토 / PR 본문 / 세션로그+본문수정
+- **Diff**: 1 file, `hardware/parts.md` (+27/-6)
 
 ## What
 `hardware/parts.md`를 `hardware/schematic-spec.md`, `hardware/power-budget.md`와 대조해 재검토. 누락 부품 7종 발견해 추가, 핵심 IC 6종 데이터시트 공식 링크 추가, 총합표 재계산. 시스템 소계(646,000원)는 변동 없음 — 기존 "PCB SMT 부품" 뭉텅이 예산에서 개별 항목으로 재배분.
@@ -19,8 +19,5 @@
 
 ## Notes
 - 데이터시트 링크는 웹서치로 제조사 공식 PDF/제품페이지 확인 후 반영 (NXP/TI/TDK-InvenSense/Diodes 공식 도메인 우선).
-- ⚠️ **머지 순서 의존성**: 세션 로그 파일(`docs/logs/session-2026-07-12.md`) 충돌을 피하려고 이 브랜치를 `w0/t00d-main-trunk-policy` 위로 rebase함. 그래서:
-  1. `w0/t00d-main-trunk-policy` → `main` PR을 **먼저** merge
-  2. 그다음 이 브랜치를 `main` 기준으로 rebase(충돌 없을 것 — 서로 다른 파일) 후 PR target을 `main`으로 열어서 merge
-  3. 또는 그냥 지금 상태로 `w0/t00d-main-trunk-policy`를 target으로 스택 PR 오픈해도 무방 (t00d 머지되면 GitHub가 diff를 자동으로 좁혀줌)
+- ⚠️ **push 시 주의**: `w0/t00d-main-trunk-policy` merge 완료 후 이 브랜치를 `main` 기준으로 재rebase함 (커밋 해시가 바뀜 — 원격에 이미 올라간 이전 버전과 다름). `git push --force-with-lease -u origin w0/t02-parts-review`로 push 필요.
 - 남은 W0-T00c 미해결 항목(BOM 최종 confirm + 발주 결제)은 이 PR 머지 후 heebin 판단.
