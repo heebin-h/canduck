@@ -32,7 +32,7 @@
 
 ### 1.4. 아직 안 끝난 것 (진짜 loose end)
 - ⏸ **`w0/t02c-session-log-sync` 브랜치** — 이번 세션 turn-6 로그만 담은 작은 브랜치, 아직 push/PR/merge 안 됨. 다음 세션에서 먼저 처리하거나 지금 push해도 됨.
-- ⏸ **BOM 최종 confirm + 발주 결제** (W0-T00c에서부터 미해결) — parts.md는 재검토까지 끝났지만 heebin의 최종 승인/결제는 아직.
+- ⏸ **BOM 발주 결제** — 2026-07-12 turn-8에서 최종 confirm 완료 (RPi 4GB, 현미경 제외, 혼합 실장, 3배치 분리 — `hardware/parts.md` "발주 확정" 섹션). 배치 1 결제 실행만 남음 (heebin, 이번 주 내 권장).
 - ⏸ **roadmap 일정 재캘린더링** — roadmap.md 작성 시점(W0~W12) 이후 실제로 한 달 넘게 정체된 구간이 있었음. 시작일을 다시 못박을지는 heebin 판단.
 - ⏸ **KiCad 9 설치** (heebin) — W1 진입 전제조건, 아직 확인 안 됨.
 
