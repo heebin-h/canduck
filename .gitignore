@@ -1,6 +1,10 @@
 # OS
 .DS_Store
 
+# Local editor / tool state (machine-specific, not project content)
+.obsidian/
+.omc/
+
 # Python
 __pycache__/
 *.pyc
