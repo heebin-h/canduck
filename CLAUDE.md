@@ -111,33 +111,32 @@
 
 ---
 
-## 8. PR 워크플로우 — Git Flow lite (2026-05-29 합의)
+## 8. PR 워크플로우 — main 단일 트렁크 (2026-07-12 개정, 최초는 2026-05-29 Git Flow lite였으나 변경)
 
-브랜치 전략 = **`main` + `develop` + feature**. `release/*` · `hotfix/*` 는 W9 (RPi systemd 배포 시작) 시점에 도입 검토.
+> **변경 이력**: W0-T00/T00b/T00c(3 commit)이 `develop` 대신 `main`으로 직접 머지되고 remote `develop` 브랜치가 삭제된 상태로 확인됨(2026-07-12). 1인 메이커 프로젝트에서 `develop` 이중관리 실익이 없다고 판단, **main을 유일한 trunk로 공식화**. `release/*`·`hotfix/*`는 기존 계획대로 W9(RPi systemd 배포 시작) 시점에 도입 검토.
 
 ### 8.1. 브랜치 정의
 | 브랜치 | 의미 | 직접 commit | PR target | 도입 시점 |
 |---|---|---|---|---|
-| `main` | 배포 안정본 (release tag `v0.x.y`) | ❌ | release/hotfix only | W9+ 부터 의미 |
-| `develop` | 개발 통합 trunk (default branch) | ❌ | ✅ feature PR 기본 target | 지금부터 |
-| `w{n}/t{m}-{slug}` | feature (작업 브랜치) | ✅ Claude | (자기 자신) | task 단위 |
-| `release/*` | 배포 준비 (선택) | ❌ | develop + main | W9+ 검토 |
-| `hotfix/*` | 운영 버그 긴급 (필수) | ❌ | main + develop | W9+ (첫 배포 직후) |
+| `main` | 유일한 trunk (default branch) | ❌ | ✅ feature PR target | 지금부터 |
+| `w{n}/t{m}-{slug}` | feature (작업 브랜치) | ✅ Claude | `main` | task 단위 |
+| `release/*` | 배포 준비 (선택) | ❌ | main | W9+ 검토 |
+| `hotfix/*` | 운영 버그 긴급 (필수) | ❌ | main | W9+ (첫 배포 직후) |
 
-- 작업 브랜치 명명: `w{week}/t{task}-{kebab-slug}` (예: `w0/t00-initial-scaffolding`, `w1/t03-pcb-schematic`)
-- 작업 브랜치는 항상 **develop에서 분기 → develop으로 머지**.
-- main은 W0~W8 동안 `Initial commit` 또는 첫 release tag 직전 상태로 frozen.
+- 작업 브랜치 명명: `w{week}/t{task}-{kebab-slug}` (예: `w0/t01-skills-docs`, `w1/t03-pcb-schematic`)
+- 작업 브랜치는 항상 **main에서 분기 → main으로 머지**.
+- `develop` 브랜치는 더 이상 사용하지 않음. 기존 문서/스크립트에 `develop` 언급이 남아있으면 `main`으로 정정.
 
 ### 8.2. 역할 분담
 | 단계 | Claude | heebin |
 |---|---|---|
-| develop 기준 작업 브랜치 생성 | ✅ | — |
+| main 기준 작업 브랜치 생성 | ✅ | — |
 | 코드/문서 변경 + commit (msg `W{n}-T{m}: <slug>`) | ✅ | — |
 | `git push -u origin <branch>` | — | ✅ |
-| GitHub 웹에서 PR open (target = **`develop`**) + 본문 paste | — | ✅ |
-| PR 본문 작성 + `pbcopy` 로 클립보드 복사 | ✅ | — |
+| GitHub 웹에서 PR open (target = **`main`**) + 본문 paste | — | ✅ |
+| PR 본문 작성 + 클립보드 복사(또는 파일로 전달) | ✅ | — |
 | review (선택) + Merge 클릭 | — | ✅ |
-| merge 후 `git checkout develop && git pull` | ✅ | — |
+| merge 후 `git checkout main && git pull` (또는 로컬 fast-forward 확인) | ✅ | — |
 | 다음 task 진입 | ✅ | — |
 
 ### 8.3. PR 본문 포맷
@@ -157,15 +156,13 @@
 - GitHub 자동 생성 파일 (README/.gitignore placeholder)은 로컬본 채택
 
 ### 8.5. main 보호
-- main 직접 commit 금지
-- main은 W9+ release/hotfix PR로만 갱신
+- main 직접 commit 금지 — 항상 feature 브랜치 → PR → merge
 - force-push 금지
+- (선택) GitHub branch protection: direct push 금지, PR-only, W1 진입 전 설정 권장
 
-### 8.6. 초기 셋업 (heebin 1회)
-1. credential helper: `git config --global credential.helper osxkeychain`
-2. develop 브랜치 push: `git push -u origin develop`
-3. **GitHub repo Settings → Branches → Default branch → `develop` 으로 변경** (이후 PR 기본 target = develop)
-4. (선택) main branch protection rule — direct push 금지, PR-only
+### 8.6. 초기 셋업 — 완료됨 (2026-07-12)
+1. ~~credential helper~~ / ~~develop push~~ / ~~default branch 변경~~ — 해당 없음 (main 단일 모델로 스킵)
+2. (선택, 아직 미결) main branch protection rule — direct push 금지, PR-only
 
 ### 8.7. W9 시점에 검토할 것 (메모)
 - `release/*` 도입 여부 (배포 빈도가 잦으면 도입)
