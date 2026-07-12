@@ -29,6 +29,7 @@ dev = [
 
 [project.scripts]
 canduck-daemon = "canduck.daemon:main"
+canduck-smoke = "canduck.uart_smoke:main"
 
 [build-system]
 requires = ["setuptools>=68"]
