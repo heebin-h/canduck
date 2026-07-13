@@ -127,6 +127,7 @@ void dispatch(char* line) {
     }
 
     if (strcmp(cmd, "STOP") == 0) {
+        poses_abort();  // 시퀀스부터 끊어야 다음 tick에 키프레임이 재발사되지 않음
         servo_stop_all();
         motor_stop();
         send_ack("STOP");
@@ -139,7 +140,9 @@ void dispatch(char* line) {
             emit_event_err(CmdResult::ParseError, "ENABLE needs 0/1");
             return;
         }
-        servo_set_enable(atoi(arg) != 0);
+        bool en = atoi(arg) != 0;
+        servo_set_enable(en);
+        if (!en) motor_stop();  // OE#는 서보만 게이트 — 모터는 여기서 정지
         send_ack("ENABLE");
         return;
     }

@@ -81,8 +81,15 @@ class CanduckApp:
 
     async def stop(self) -> None:
         log.info("daemon_stopping")
-        await self.uart.send("ENABLE", 0)
-        await self.uart.close()
+        try:
+            await self.uart.send("STOP")
+            await self.uart.send("ENABLE", 0)
+        except Exception as exc:  # UART 미연결/장애여도 종료는 계속
+            log.warning("uart_shutdown_send_failed", error=str(exc))
+        try:
+            await self.uart.close()
+        except Exception as exc:
+            log.warning("uart_close_failed", error=str(exc))
         self.mqtt.close()
         await self.voice.stop()
         self.gpio.close()

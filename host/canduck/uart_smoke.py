@@ -68,6 +68,11 @@ class SmokeSession:
             time.sleep(0.02)
         return None
 
+    def flush(self) -> None:
+        """수신된 이벤트 큐 비우기 (부팅 배너/dry-run ERR 제거용)."""
+        with self._lock:
+            self.events.clear()
+
     def close(self) -> None:
         self._stop.set()
         self.ser.close()
@@ -85,6 +90,7 @@ def run_check(s: SmokeSession) -> int:
 
     # BOOT 배너는 포트 오픈 타이밍에 따라 놓칠 수 있어 정보성으로만 표시
     print(f"INFO: BOOT 배너 {'수신' if s.wait_event('BOOT', 1.0) else '미수신 (포트 오픈 전에 지나갔을 수 있음)'}")
+    s.flush()  # 부팅 시 dry-run ERR 등 잔여 이벤트 제거 — 이후 검증 오염 방지
 
     s.send("PING")
     expect("PING → PONG", s.wait_event("PONG") is not None)

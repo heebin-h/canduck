@@ -23,7 +23,6 @@ class TkFaceDisplay:
     def __init__(self) -> None:
         self._frames: queue.Queue[Image.Image | None] = queue.Queue(maxsize=4)
         self._thread: threading.Thread | None = None
-        self._available = False
 
     def start(self) -> None:
         self._thread = threading.Thread(target=self._run, name="face-tk", daemon=True)
@@ -46,6 +45,13 @@ class TkFaceDisplay:
             self._thread.join(timeout=2.0)
 
     def _run(self) -> None:
+        import sys
+        if sys.platform == "darwin":
+            # macOS AppKit은 NSWindow 생성을 메인 스레드로 강제 — 워커 스레드 Tk는
+            # NSInternalInconsistencyException으로 프로세스가 통째로 죽음 (실측).
+            # ponytail: darwin은 표시 생략. macOS 개발 표시가 필요해지면 Tk 서브프로세스 뷰어로.
+            log.warning("tk_darwin_unsupported", hint="RPi/Linux에서만 표정 창 표시")
+            return
         try:
             import tkinter as tk
             from PIL import ImageTk
@@ -59,7 +65,6 @@ class TkFaceDisplay:
             log.warning("tk_no_display", error=str(exc))
             return
 
-        self._available = True
         w = settings.face_width * settings.face_scale
         h = settings.face_height * settings.face_scale
         root.title("canduck")
@@ -90,5 +95,4 @@ class TkFaceDisplay:
         try:
             root.mainloop()
         finally:
-            self._available = False
             log.info("tk_display_closed")
