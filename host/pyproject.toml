@@ -6,10 +6,8 @@ requires-python = ">=3.11"
 dependencies = [
     "paho-mqtt>=2.1.0",
     "pyserial-asyncio>=0.6",
-    "pygame>=2.6.0",
     "pillow>=10.4.0",
     "smbus2>=0.5.0",
-    "spidev>=3.6",
     "pydantic>=2.8.0",
     "pydantic-settings>=2.4.0",
     "structlog>=24.4.0",
@@ -29,6 +27,7 @@ dev = [
 
 [project.scripts]
 canduck-daemon = "canduck.daemon:main"
+canduck-smoke = "canduck.uart_smoke:main"
 
 [build-system]
 requires = ["setuptools>=68"]

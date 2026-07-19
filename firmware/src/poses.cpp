@@ -129,8 +129,9 @@ bool poses_trigger(const char* name) {
     return false;
 }
 
-bool poses_active() {
-    return active_frames != nullptr;
+void poses_abort() {
+    active_frames = nullptr;
+    active_name = nullptr;
 }
 
 void poses_tick() {
