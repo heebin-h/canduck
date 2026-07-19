@@ -134,10 +134,6 @@ void poses_abort() {
     active_name = nullptr;
 }
 
-bool poses_active() {
-    return active_frames != nullptr;
-}
-
 void poses_tick() {
     if (!active_frames) return;
     uint32_t elapsed = millis() - active_start_ms;

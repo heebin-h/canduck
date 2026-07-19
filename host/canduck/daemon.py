@@ -10,6 +10,7 @@ systemd 서비스로 실행. asyncio 이벤트 루프로:
 를 통합.
 """
 import asyncio
+import logging
 import signal
 import sys
 
@@ -177,7 +178,7 @@ class CanduckApp:
 def _setup_logging() -> None:
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(
-            __import__("logging").getLevelName(settings.log_level)
+            logging.getLevelName(settings.log_level)
         ),
         processors=[
             structlog.contextvars.merge_contextvars,

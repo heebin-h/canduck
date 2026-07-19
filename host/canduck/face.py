@@ -91,8 +91,3 @@ class Face:
         self._current = expr
         if self._display is not None:
             self._display.show(render_expression(expr))
-
-    def tick(self) -> None:
-        """짧은 애니메이션(깜빡임 등) 진행. 30Hz로 호출."""
-        # TODO: 깜빡임 키프레임, idle sway 등 W3에 추가
-        pass

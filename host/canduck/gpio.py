@@ -57,16 +57,6 @@ class GpioManager:
             log.warning("gpio_mock", reason=str(exc))
             self._reset = self._boot = self._button = None
 
-    def esp32_reset(self) -> None:
-        """ESP32 리셋 펄스 (통신 두절 회복용)."""
-        if self._reset is None:
-            log.info("gpio_mock_esp32_reset")
-            return
-        self._reset.on()   # EN Low
-        time.sleep(_RESET_PULSE_S)
-        self._reset.off()  # EN High → 부팅
-        log.info("esp32_reset_pulsed")
-
     def esp32_enter_bootloader(self) -> None:
         """BOOT Low 상태로 리셋 → UART 다운로드 모드 (W3+ OTA/플래시용)."""
         if self._reset is None or self._boot is None:
