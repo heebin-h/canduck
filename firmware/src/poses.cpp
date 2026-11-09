@@ -144,7 +144,10 @@ void poses_tick() {
         if (kf.channel == 0xFF) {
             // 시퀀스 종료 sentinel
             if (servo_all_idle()) {
-                emit_event_done(active_name);
+                // architecture.md 프로토콜: "< DONE <원명령>" = "< DONE POSE <name>"
+                char done_cmd[32];
+                snprintf(done_cmd, sizeof(done_cmd), "POSE %s", active_name);
+                emit_event_done(done_cmd);
                 active_frames = nullptr;
                 active_name = nullptr;
             }
