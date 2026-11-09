@@ -70,6 +70,7 @@ class TkFaceDisplay:
         root.title("canduck")
         root.geometry(f"{w}x{h}")
         root.resizable(False, False)
+        root.configure(bg="#f4efe6")  # 첫 프레임 전 빈 창도 LCD 배경색
         label = tk.Label(root, bd=0)
         label.pack(fill="both", expand=True)
         photo_ref: list = [None]  # PhotoImage GC 방지 참조 홀더
@@ -83,7 +84,8 @@ class TkFaceDisplay:
             if frame is None:
                 root.destroy()
                 return
-            img = frame.resize((w, h), Image.NEAREST)
+            # 도트 표정 — 보간하면 도트 경계가 뭉개지므로 NEAREST
+            img = frame.resize((w, h), Image.Resampling.NEAREST)
             photo = ImageTk.PhotoImage(img)
             photo_ref[0] = photo
             label.configure(image=photo)

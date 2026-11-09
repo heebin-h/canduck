@@ -1,7 +1,7 @@
 [project]
 name = "canduck"
 version = "0.1.0"
-description = "Canduck desktop pet host daemon (runs on RPi 5)"
+description = "Canduck desktop pet host daemon (runs on RPi 4)"
 requires-python = ">=3.11"
 dependencies = [
     "paho-mqtt>=2.1.0",

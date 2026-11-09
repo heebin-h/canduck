@@ -1,7 +1,7 @@
 # canduck host daemon
 
 RPi 4 위에서 동작하는 Python 데몬. UART로 ESP32-S3와, MQTT로 macOS 에이전트와 통신.
-표정은 tkinter 창으로 표시 (LCD 탈락, 2026-07-12 — `docs/reports/W0-T02e-order-final.md`).
+감정은 본체 서보 포즈로 표현. tkinter 표정 창은 선택 기능으로 기본 비활성 — `CANDUCK_ENABLE_FACE=true`로 켬 (LCD 탈락, 2026-07-12 — `docs/reports/W0-T02e-order-final.md`).
 
 ## 설치 (RPi 4)
 
@@ -67,7 +67,7 @@ host/
 - [x] 골격 작성, 모든 모듈 import 가능 (실 HW 없이 dev 환경에서)
 - [x] 표정 표시 tkinter 백엔드 (`display_tk.py`) + GPIO 모듈 (`gpio.py`)
 - [x] UART 스모크 테스트 CLI (`canduck-smoke --check`)
-- [ ] 표정 PNG 자산 (`assets/face/*.png`) — W3
+- [ ] 표정 PNG 자산 (`assets/face/*.png`, 직접 제작) — 선택. 없으면 도트 폴백, 창 자체가 기본 off
 - [ ] INA219 calibration + 실측 — W4
 - [ ] 깜빡임/idle sway 애니메이션 — W3
 - [ ] 음성 응답음 WAV 자산 — W6
@@ -94,6 +94,6 @@ python -m venv .venv
 ## 트러블슈팅
 
 - **UART 안 잡힘**: `/boot/firmware/config.txt`에 `enable_uart=1`, 콘솔 비활성 (`raspi-config` → Interface → Serial → No console / Yes hardware).
-- **tkinter 창 안 뜸**: `sudo apt install python3-tk`. SSH 세션이면 DISPLAY 없음 — 데몬은 표시 없이 정상 동작.
+- **tkinter 창 안 뜸**: 기본 비활성 — `/etc/canduck/canduck.env`에 `CANDUCK_ENABLE_FACE=true` 확인. 그다음 `sudo apt install python3-tk`. SSH 세션이면 DISPLAY 없음 — 데몬은 표시 없이 정상 동작.
 - **MQTT 연결 실패**: `sudo systemctl status mosquitto`. listener는 `localhost` 한정 권장 (LAN 노출 시 ACL 설정).
 - **systemd가 venv 못 찾음**: ExecStart 경로 `/opt/canduck/.venv/bin/canduck-daemon` 정확한지 확인.

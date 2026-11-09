@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     face_width: int = 240
     face_height: int = 240
     face_scale: int = 2  # 창 확대 배율
-    enable_face: bool = True
+    enable_face: bool = False  # 기본 비활성 — 표정은 본체 포즈로 표현. assets/face PNG 준비 시 켬
 
     # GPIO (schematic-spec.md RPi 핀맵)
     enable_gpio: bool = True
@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     # Behavior
     idle_to_sleepy_sec: int = 600
     sleepy_to_sleep_sec: int = 60
+    # 포즈 없는 일시 상태 → idle 복귀 (DONE이 오지 않으므로 타이머로 복귀, architecture.md FSM 표)
+    surprised_sec: float = 1.0
+    listening_sec: float = 5.0
+    # 포즈 상태(headache/happy) 안전망 — DONE 유실·ESP32 리셋 시 고착 방지 (headache 시퀀스 ~5.5초)
+    pose_done_timeout_sec: float = 15.0
     headache_cooldown_sec: int = 10
 
     # Voice

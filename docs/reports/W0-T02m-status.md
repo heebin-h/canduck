@@ -1,0 +1,110 @@
+# W0-T02m — Project Status Check (2026-11-09)
+
+- **Date**: 2026-11-09
+- **Owner**: Claude (점검) + heebin (판단)
+- **Status**: completed — §1~5는 점검 시점(00:50) 스냅샷. include 수정은 §6 하단에서 적용·검증됨
+- **Phase**: Phase 1 (Sourcing) 확정 + 코드 초안 완료, **W1 미진입**
+
+---
+
+## 1. What happened
+
+- 세션 재진입 후 추적 파일 71개 전수 통독 (.md 40개 개별 + firmware/host 코드 + hook/설정).
+- 결론: Phase 0(Infra)·Phase 1(소싱 확정)·W0 코드 초안까지 완료. W1(KiCad schematic) 미진입. **마지막 작업 2026-07-20 이후 약 3.5개월 정체.**
+
+## 2. 현황 스냅샷
+
+| 영역 | 상태 | 근거 |
+|---|---|---|
+| Git | `w0/t02d-handoff-update`(17커밋) → **PR #5 open, 미머지**. origin/main = PR #4 (`0894494`) | HTTPS `git ls-remote`: `refs/pull/5/head` = `09d5930` = 로컬 HEAD, `refs/pull/5/merge` 존재 (점검 시점 기준. 이후 `ec86be2`로 머지됨) |
+| BOM | 확정 — 배치 1 ~249K (A 97K + 모터 52K + 3-in-1 카메라 ~100K), 배치 2(W2 JLC) ~155K | `hardware/parts.md` 총계 |
+| 결제·입고 | **기록상 미결제** — 체크리스트 ☐ 전부 비어있음 | `hardware/parts.md` 발주 실행 체크리스트 |
+| 하드웨어 설계 | 사양서만 존재, KiCad 프로젝트 없음 | `hardware/schematic-spec.md`, `hardware/power-budget.md` |
+| 펌웨어 | UART 명령 9종·서보 보간·PCA9685 dry-run·모터·포즈 5종·vbat 구현. IMU/터치는 W4 | `firmware/src/*.cpp` |
+| 호스트 | daemon/FSM/tkinter 표정/GPIO/smoke CLI 구현. INA219 폴링은 stub(W4) | `host/canduck/telemetry.py:47-52` |
+| 검증 | host `py_compile`만 통과. **펌웨어 빌드 이력 0회** | `docs/pr/w0-t02d-handoff-update_2026-07-12.md` "검증 상태" |
+
+## 3. 발견 사항
+
+| 심각도 | 항목 | 내용 | 조치 |
+|---|---|---|---|
+| 높음 | 펌웨어 컴파일 에러(→ §6에서 확정) | `firmware/src/poses.cpp:27~` 이 `CH_HEAD_YAW` 등 `pins.h` 매크로를 쓰지만 `pins.h` 미include. include 체인(`poses.h`/`servo_ctrl.h`/`comm.h`)도 `<Arduino.h>`만 포함 | `#include "pins.h"` 1줄 추가 — **적용·clean build SUCCESS (§6)** |
+| 중간 | 문서 stale | `docs/architecture.md`(RPi5·LCD·Pygame), `docs/roadmap.md`(RPi5·stencil·핫에어 수동 실장), `host/systemd/canduck.env.example`(`CANDUCK_LCD_*`), `host/pyproject.toml` description("RPi 5"), `hardware/parts.md` 발주 배치 표(~435K 구버전 잔존) | 미적용 — 정합화 필요 |
+| 중간 | W1 설계 미결 | J_A4 6핀→8핀 정정, Board B I2S·앰프·J_B3/B4/B6 삭제, 벤치 PSU 보유 확인(유일한 7.4V 급전원) | `docs/handoff/next-session.md` §1.4 |
+| 낮음 | 미추적 이미지 3개 | 루트 `800.jpeg`, `ff1060939b9bc96f5be5cb21bd85bbe7.jpg`, `moncolle_ex_s24035.jpg` — CLAUDE.md §3 IP 경계로 Claude 미열람 | 레포 비대상이면 `.gitignore` 또는 이동 |
+
+## 4. Next actions
+
+### heebin (W1 진입 조건)
+1. PR #5 머지
+2. 배치 1 결제 여부 확인 — 7월 이후 진행됐으면 `hardware/parts.md` 체크리스트 반영
+3. 벤치 PSU 보유 확인
+4. KiCad 9 설치
+5. `docs/roadmap.md` 시작일 재지정 (4개월 공백)
+
+### Claude (PR #5 머지 후, 승인 시)
+1. ~~새 브랜치에서 `poses.cpp` include 수정~~ — 완료 (`w0/t02n-poses-include-fix`)
+2. ~~§3 stale 문서 정합화~~ — 완료 (§7)
+3. W1 진입 — `w1/t03-pcb-schematic`
+
+## 5. Context notes
+
+- 확인 못 한 것: `.omc/state` 내용, 결제·장비 보유 여부(레포에 기록 없음), 펌웨어 실제 빌드 결과.
+- sandbox는 SSH fetch 불가 — remote 상태는 HTTPS `ls-remote`로 확인 (`docs/handoff/next-session.md` §4).
+
+## 6. 추가 확인 (2026-11-09, 같은 세션 후속)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| remote 변화 | 없음 — origin/main=`0894494`, PR #5 head=`09d5930`(=로컬 HEAD), `refs/pull/5/merge` 존재 → 여전히 open·미머지 | HTTPS `git ls-remote` |
+| 펌웨어 첫 빌드 | **FAILED** — `src/poses.cpp:27~94` `'CH_HEAD_YAW'/'CH_HEAD_PITCH'/'CH_LEG_*' was not declared in this scope`. §3 "예상"이 확정됨 | `pio run` (esp32-s3-devkit, 490s, 툴체인 첫 설치 포함) |
+| 수정안 검증 | 소스 무수정, `PLATFORMIO_BUILD_FLAGS="-include include/pins.h"`로 재빌드 → **SUCCESS**, error/warning 0. RAM 6.1%(20,008B), Flash 9.5%(316,153B) | `pio run` 재실행 |
+| `.omc/state` | 7/13·7/19 세션 HUD/에러 캐시만 존재. 진행 중 모드·handoff 없음 | `.omc/state/sessions/*` |
+
+→ 펌웨어 블로커는 `poses.cpp`에 `#include "pins.h"` 1줄로 해소됨이 빌드로 검증됨. 그 외 TU(comm/main/motor/servo_ctrl)는 원래 빌드에서도 컴파일 성공.
+
+**적용 (PR #5 머지 `ec86be2` 후)**: `w0/t02n-poses-include-fix`에서 `firmware/src/poses.cpp`에 `#include "pins.h"` 추가 → `pio run -t clean` 후 `pio run` **SUCCESS**, error/warning 0, RAM 6.1% · Flash 9.5% (주입 플래그 없이 검증).
+
+## 7. 전체 코드 리뷰 + 반영 (2026-11-09, 같은 브랜치)
+
+firmware/host 전 파일을 리뷰했다. 상세 표는 PR 본문(`docs/pr/w0-t02n-poses-include-fix_2026-11-09.md` "원인 / 결함 설명")에 있다.
+
+| 심각도 | 위치 | 결함 | 상태 |
+|---|---|---|---|
+| 높음 | `host/canduck/fsm.py:64` | structlog `event=` kwarg 충돌 TypeError → FSM이 한 번도 전이하지 못함 | 수정 (`3945737`) |
+| 중간 | `host/canduck/fsm.py` | surprised/listening 고착 (DONE 없음) | 수정 — 타이머 복귀 |
+| 중간 | `host/canduck/daemon.py` | ERROR에서 서보 토크 유지, brown-out BOOT 시 재활성화 | 수정 |
+| 중간 | `host/canduck/daemon.py` | 늦은 DONE이 새 상태를 idle로 되돌림 | 수정 |
+| 중간 | `host/canduck/uart_client.py` | EOF 빈 루프 무한 반복, 장애가 드러나지 않음 | 수정 — exit 1 → systemd 재기동. ⚠️ 실제 장치 분리(예외) 경로는 미처리였음 → §8 재수정 (`a791541`) |
+| 중간 | `firmware/src/servo_ctrl.cpp` | STOP 후 / 보간 중 새 명령 시 서보 점프 | 수정 (`fd7d734`) |
+| 낮음 | `firmware/src/comm.cpp` | atoi 랩어라운드·비숫자 통과, ARM/LEG 범위 미검사, 오버플로 꼬리 처리 | 수정 |
+| 낮음 | `firmware/src/poses.cpp` | DONE 포맷 명세 불일치 | 수정 |
+| 중간 | 문서 7종 | §3 stale 항목 | 정합화 (`37f8a39`) |
+
+검증: 펌웨어 빌드 SUCCESS(RAM 6.1% · Flash 9.5%) / 호스트 가짜 UART 시나리오 11/11 PASS / `py_compile` OK. 실기·RPi 배포는 미실행.
+
+**리뷰했지만 이번에 고치지 않은 것** (기능 추가이거나 heebin 결정 필요):
+- 명세 대비 미구현: sleep ENABLE 0, headache cooldown(`headache_cooldown_sec` 미사용), 모션 중 이벤트 큐잉, MQTT alert·`canduck/state` 발행, walking.
+- `mqtt_client.connect()`가 동기 connect라 부팅 시 브로커가 없으면 예외 → 데몬 종료 → systemd 재시도(3s). 기동 후 재연결은 paho `loop_start`가 자동 처리. QoS 0 · retain false · LWT 없음.
+- `voice.py`(W6, 기본 비활성): `stream.read()`가 이벤트 루프를 블로킹한다. `RawInputStream` 버퍼를 int16 시퀀스로 변환하지 않고 `porcupine.process()`에 넘긴다. W6 착수 시 재작성 필요.
+- `gpiozero`가 pyproject 의존성에 없다 — venv가 `--system-site-packages`가 아니면 RPi에서도 mock으로 조용히 강등된다.
+- DevKit 단독으로 **데몬**을 돌리면 분압 미연결 ADC 플로팅 값이 `vbat_critical_mv`(6600) 미만으로 읽힐 수 있다 → ERROR(서보 비활성). `canduck-smoke`에는 영향 없음.
+- 전역 `pio`(Python 3.14) `intelhex` 누락 — `~/.platformio/penv/bin/pio` 사용.
+
+## 8. 후속 리뷰 + 반영 (2026-11-10, 같은 브랜치)
+
+§7 반영분을 다시 리뷰했다. 핵심은 §7의 UART 단절 수정이 실제 장애 경로에서 동작하지 않았다는 것. §7의 "11/11 PASS"는 `b""` EOF만 재현한 시나리오였다.
+
+| 심각도 | 위치 | 결함 | 상태 |
+|---|---|---|---|
+| 높음 | `host/canduck/uart_client.py` `_read_loop` | 장치 분리 시 readline이 EOF가 아니라 `SerialException`을 던짐(pyserial-asyncio `_read_ready` → `_close(exc=e)` → `set_exception`, 이후 같은 예외 영구 재발생). 기존 except가 0.5초 재시도만 해 disconnect 미호출·무한 로그 | 수정 (`a791541`) — 읽기 예외도 단절 처리, 64KiB 초과 라인(ValueError)만 계속 |
+| 중간 | `host/canduck/fsm.py` | headache/happy가 DONE에만 의존 — ESP32 리셋·DONE 유실 시 고착 | 수정 (`e3e32f8`) — `CANDUCK_POSE_DONE_TIMEOUT_SEC` 15초 |
+| 중간 | `docs/architecture.md` | error 트리거 "UART 단절(EOF)" — 운용 `/dev/ttyAMA0`(GPIO UART)은 EOF가 나지 않음 | 문서 정정 (`a9e5980`) — 개발 구성 한정 명시, PING 감시 W3 |
+| 낮음 | `host/canduck/daemon.py` | 단절 시 stop 태스크 참조 미보관, docstring LCD 잔재 | 수정 (`518f671`) |
+| 낮음 | `host/canduck/face.py` | 자산 PNG bicubic 확대로 도트 뭉개짐 | 수정 (`449add4`) |
+
+**결정**: 표정 창 기본 비활성(`CANDUCK_ENABLE_FACE=false`) — v1 감정 표현은 본체 서보 포즈. 코드는 유지, 절차적 폴백은 도트 LCD 스타일. 캐릭터 얼굴은 heebin이 직접 그린 `assets/face/{expr}.png`로만 (§IP 경계, `CLAUDE.md` §3).
+
+검증: StreamReader 시뮬레이션 3경로(예외/EOF/초과 라인), FSM 타임아웃·정상 DONE·ERROR 유지, `enable_face` 기본값·env 파싱, 표정 9종 렌더. 실기(USB 분리 → exit 1·재기동), RPi4 표정 창 실표시는 미실행.
+
+**고치지 않은 것**: ESP32 무응답 감지(PING 감시) — 기능 추가라 W3. §7 미수정 목록은 그대로 유효.
