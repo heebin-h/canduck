@@ -221,7 +221,7 @@
 
 ## 표정 (tkinter 창)
 
-LCD는 2026-07-12 품목 심사에서 탈락. `face.py`가 240×240 PIL 비트맵을 만들고 `display_tk.py`가 tkinter 창에 표시(`CANDUCK_FACE_SCALE` 배율). headless(DISPLAY 없음)·macOS에서는 no-op. **표정은 화면 안에서만 표현 — 외형 본체 디자인과 독립**.
+LCD는 2026-07-12 품목 심사에서 탈락. `face.py`가 240×240 PIL 비트맵을 만들고 `display_tk.py`가 tkinter 창에 표시(`CANDUCK_FACE_SCALE` 배율). headless(DISPLAY 없음)·macOS에서는 no-op. **기본 비활성(`CANDUCK_ENABLE_FACE=false`)** — v1 감정 표현은 본체 서보 포즈로 하고, 표정 창은 직접 그린 `assets/face/{expr}.png`를 준비했을 때 켠다. **표정은 화면 안에서만 표현 — 외형 본체 디자인과 독립**.
 
 | 표정 ID | 화면 구성 |
 |---|---|

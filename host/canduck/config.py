@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     face_width: int = 240
     face_height: int = 240
     face_scale: int = 2  # 창 확대 배율
-    enable_face: bool = True
+    enable_face: bool = False  # 기본 비활성 — 표정은 본체 포즈로 표현. assets/face PNG 준비 시 켬
 
     # GPIO (schematic-spec.md RPi 핀맵)
     enable_gpio: bool = True
