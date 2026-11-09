@@ -106,7 +106,7 @@ class FSM:
                 return State.SLEEPY
             if cur == State.SLEEPY:
                 return State.SLEEP
-            if cur in (State.SURPRISED, State.LISTENING):
+            if cur in (State.SURPRISED, State.LISTENING, State.HEADACHE, State.HAPPY):
                 return State.IDLE
             return None
         if event == Event.POSE_DONE:
@@ -123,6 +123,9 @@ class FSM:
             # 포즈가 없어 DONE이 오지 않는 상태 — 타이머 없으면 다음 외부 이벤트까지 고착
             State.SURPRISED: settings.surprised_sec,
             State.LISTENING: settings.listening_sec,
+            # 포즈 상태 — 정상이면 DONE이 먼저 오고, 안 오면(유실·ESP32 리셋) 강제 복귀
+            State.HEADACHE: settings.pose_done_timeout_sec,
+            State.HAPPY: settings.pose_done_timeout_sec,
         }.get(state)
 
     async def idle_timer_loop(self) -> None:
