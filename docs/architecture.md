@@ -173,11 +173,13 @@
 | `sleep` | sleepy 60초 후 | sleep 표정 + 머리 떨굼, ENABLE 0, MQTT만 listening |
 | `surprised` | TAP 약함, 알림 등 | 1초 surprised → idle |
 | `walking` | 사용자 트리거 또는 30분마다 자동 배회 | 휠 + 다리 스윙, ToF로 모서리 감지 |
-| `error` | UART 단절(EOF), 배터리 critical | error 표정, STOP + ENABLE 0, MQTT alert. 회복 없음 — UART 단절은 데몬 exit 1 → systemd 재기동 |
+| `error` | UART 단절(USB 시리얼 EOF/분리 — 개발 구성 한정), 배터리 critical | error 표정, STOP + ENABLE 0, MQTT alert. 회복 없음 — UART 단절은 데몬 exit 1 → systemd 재기동 |
 
 > **v1 구현 차이 (2026-11-09 기준)**: `walking` 진입 이벤트 없음(미구현). `sleep`의 ENABLE 0, headache cooldown,
 > 모션 중 이벤트 큐잉, MQTT alert는 미구현. `surprised`/`listening`은 포즈가 없어 DONE 대신
-> 타이머(`CANDUCK_SURPRISED_SEC`/`CANDUCK_LISTENING_SEC`)로 idle 복귀.
+> 타이머(`CANDUCK_SURPRISED_SEC`/`CANDUCK_LISTENING_SEC`)로 idle 복귀. `headache`/`happy`는 DONE 유실·ESP32 리셋 대비
+> `CANDUCK_POSE_DONE_TIMEOUT_SEC`(기본 15초) 후 idle 강제 복귀. `/dev/ttyAMA0` 운용 구성에서는 ESP32 무응답 감지 없음
+> (GPIO UART는 EOF가 나지 않음 — PING 감시는 W3 예정).
 
 ### 전이 다이어그램
 
