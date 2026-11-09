@@ -44,7 +44,7 @@
 
 ### Claude (PR #5 머지 후, 승인 시)
 1. ~~새 브랜치에서 `poses.cpp` include 수정~~ — 완료 (`w0/t02n-poses-include-fix`)
-2. §3 stale 문서 정합화
+2. ~~§3 stale 문서 정합화~~ — 완료 (§7)
 3. W1 진입 — `w1/t03-pcb-schematic`
 
 ## 5. Context notes
@@ -64,3 +64,29 @@
 → 펌웨어 블로커는 `poses.cpp`에 `#include "pins.h"` 1줄로 해소됨이 빌드로 검증됨. 그 외 TU(comm/main/motor/servo_ctrl)는 원래 빌드에서도 컴파일 성공.
 
 **적용 (PR #5 머지 `ec86be2` 후)**: `w0/t02n-poses-include-fix`에서 `firmware/src/poses.cpp`에 `#include "pins.h"` 추가 → `pio run -t clean` 후 `pio run` **SUCCESS**, error/warning 0, RAM 6.1% · Flash 9.5% (주입 플래그 없이 검증).
+
+## 7. 전체 코드 리뷰 + 반영 (2026-11-09, 같은 브랜치)
+
+firmware/host 전 파일을 리뷰했다. 상세 표는 PR 본문(`docs/pr/w0-t02n-poses-include-fix_2026-11-09.md` "원인 / 결함 설명")에 있다.
+
+| 심각도 | 위치 | 결함 | 상태 |
+|---|---|---|---|
+| 높음 | `host/canduck/fsm.py:64` | structlog `event=` kwarg 충돌 TypeError → FSM이 한 번도 전이하지 못함 | 수정 (`3945737`) |
+| 중간 | `host/canduck/fsm.py` | surprised/listening 고착 (DONE 없음) | 수정 — 타이머 복귀 |
+| 중간 | `host/canduck/daemon.py` | ERROR에서 서보 토크 유지, brown-out BOOT 시 재활성화 | 수정 |
+| 중간 | `host/canduck/daemon.py` | 늦은 DONE이 새 상태를 idle로 되돌림 | 수정 |
+| 중간 | `host/canduck/uart_client.py` | EOF 빈 루프 무한 반복, 장애가 드러나지 않음 | 수정 — exit 1 → systemd 재기동 |
+| 중간 | `firmware/src/servo_ctrl.cpp` | STOP 후 / 보간 중 새 명령 시 서보 점프 | 수정 (`fd7d734`) |
+| 낮음 | `firmware/src/comm.cpp` | atoi 랩어라운드·비숫자 통과, ARM/LEG 범위 미검사, 오버플로 꼬리 처리 | 수정 |
+| 낮음 | `firmware/src/poses.cpp` | DONE 포맷 명세 불일치 | 수정 |
+| 중간 | 문서 7종 | §3 stale 항목 | 정합화 (`37f8a39`) |
+
+검증: 펌웨어 빌드 SUCCESS(RAM 6.1% · Flash 9.5%) / 호스트 가짜 UART 시나리오 11/11 PASS / `py_compile` OK. 실기·RPi 배포는 미실행.
+
+**리뷰했지만 이번에 고치지 않은 것** (기능 추가이거나 heebin 결정 필요):
+- 명세 대비 미구현: sleep ENABLE 0, headache cooldown(`headache_cooldown_sec` 미사용), 모션 중 이벤트 큐잉, MQTT alert·`canduck/state` 발행, walking.
+- `mqtt_client.connect()`가 동기 connect라 부팅 시 브로커가 없으면 예외 → 데몬 종료 → systemd 재시도(3s). 기동 후 재연결은 paho `loop_start`가 자동 처리. QoS 0 · retain false · LWT 없음.
+- `voice.py`(W6, 기본 비활성): `stream.read()`가 이벤트 루프를 블로킹한다. `RawInputStream` 버퍼를 int16 시퀀스로 변환하지 않고 `porcupine.process()`에 넘긴다. W6 착수 시 재작성 필요.
+- `gpiozero`가 pyproject 의존성에 없다 — venv가 `--system-site-packages`가 아니면 RPi에서도 mock으로 조용히 강등된다.
+- DevKit 단독으로 **데몬**을 돌리면 분압 미연결 ADC 플로팅 값이 `vbat_critical_mv`(6600) 미만으로 읽힐 수 있다 → ERROR(서보 비활성). `canduck-smoke`에는 영향 없음.
+- 전역 `pio`(Python 3.14) `intelhex` 누락 — `~/.platformio/penv/bin/pio` 사용.
