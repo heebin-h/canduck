@@ -4,7 +4,7 @@ systemd 서비스로 실행. asyncio 이벤트 루프로:
 - UART (ESP32 명령/이벤트)
 - MQTT (macOS 에이전트 이벤트)
 - FSM (행동 상태)
-- Face (LCD 렌더)
+- Face (tkinter 표정 창)
 - Voice (wake-word)
 - Telemetry (전력 모니터)
 를 통합.
@@ -64,6 +64,7 @@ class CanduckApp:
         self._tasks: list[asyncio.Task] = []  # 참조 유지 — 안 하면 GC로 태스크가 사라질 수 있음
         self._stopping = False
         self.exit_code = 0  # 0이 아니면 systemd Restart=on-failure가 재기동
+        self._stop_task: asyncio.Task | None = None  # _tasks와 분리 — stop()이 _tasks를 cancel하므로
 
     async def start(self) -> None:
         self._loop = asyncio.get_running_loop()
@@ -123,7 +124,7 @@ class CanduckApp:
         await self.fsm.handle(Event.COMM_FAIL)
         self.exit_code = 1
         # reader 태스크 안에서 호출됨 — stop()이 그 태스크를 cancel하므로 await하지 않고 분리
-        asyncio.create_task(self.stop(), name="stop-on-uart-eof")
+        self._stop_task = asyncio.create_task(self.stop(), name="stop-on-uart-eof")
 
     def _make_enter_handler(self, state: State, expr: Expression):
         async def handler(payload: dict) -> None:
