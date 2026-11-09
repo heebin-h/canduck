@@ -10,13 +10,16 @@ systemd 서비스로 실행. asyncio 이벤트 루프로:
 를 통합.
 """
 import asyncio
+import logging
 import signal
 import sys
 
 import structlog
 
 from .config import settings
+from .display_tk import TkFaceDisplay
 from .face import Expression, Face
+from .gpio import GpioManager
 from .fsm import FSM, Event, State
 from .mqtt_client import MqttClient, MqttMessage
 from .telemetry import Telemetry
@@ -50,16 +53,20 @@ STATE_TO_EXPRESSION = {
 class CanduckApp:
     def __init__(self) -> None:
         self.fsm = FSM()
-        self.face = Face()
+        self.face = Face(display=TkFaceDisplay() if settings.enable_face else None)
+        self.gpio = GpioManager()
         self.uart = UartClient()
         self.mqtt = MqttClient()
         self.telemetry = Telemetry()
         self.voice = VoiceManager(on_wake=self._on_wake)
         self._stop_evt = asyncio.Event()
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     async def start(self) -> None:
+        self._loop = asyncio.get_running_loop()
         self._wire_fsm()
-        self.face.init_hardware()
+        self.face.start()
+        self.gpio.start(on_button=self._on_button)
         self.telemetry.init()
         await self.uart.connect()
         self.uart.add_handler(self._on_uart_event)
@@ -75,10 +82,19 @@ class CanduckApp:
 
     async def stop(self) -> None:
         log.info("daemon_stopping")
-        await self.uart.send("ENABLE", 0)
-        await self.uart.close()
+        try:
+            await self.uart.send("STOP")
+            await self.uart.send("ENABLE", 0)
+        except Exception as exc:  # UART 미연결/장애여도 종료는 계속
+            log.warning("uart_shutdown_send_failed", error=str(exc))
+        try:
+            await self.uart.close()
+        except Exception as exc:
+            log.warning("uart_close_failed", error=str(exc))
         self.mqtt.close()
         await self.voice.stop()
+        self.gpio.close()
+        self.face.stop()
         self._stop_evt.set()
 
     async def wait(self) -> None:
@@ -144,16 +160,25 @@ class CanduckApp:
             if pose:
                 await self.uart.send("POSE", pose)
 
+    def _dispatch_threadsafe(self, event: Event) -> None:
+        # voice/gpio 콜백은 별도 스레드에서 호출됨 — start()에서 캡처한 루프 사용
+        # (스레드에서 asyncio.get_event_loop()는 3.12+에서 RuntimeError)
+        if self._loop is None:
+            return
+        asyncio.run_coroutine_threadsafe(self.fsm.handle(event), self._loop)
+
     def _on_wake(self) -> None:
-        # voice 스레드에서 호출되므로 run_coroutine_threadsafe 사용
-        loop = asyncio.get_event_loop()
-        asyncio.run_coroutine_threadsafe(self.fsm.handle(Event.WAKE_WORD), loop)
+        self._dispatch_threadsafe(Event.WAKE_WORD)
+
+    def _on_button(self) -> None:
+        # 물리 버튼 = wake-word와 동일 취급 (schematic-spec GPIO4 사용자 버튼)
+        self._dispatch_threadsafe(Event.WAKE_WORD)
 
 
 def _setup_logging() -> None:
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(
-            __import__("logging").getLevelName(settings.log_level)
+            logging.getLevelName(settings.log_level)
         ),
         processors=[
             structlog.contextvars.merge_contextvars,

@@ -3,6 +3,7 @@
 
 #include "servo_ctrl.h"
 #include "pins.h"
+#include "comm.h"
 #include <Adafruit_PWMServoDriver.h>
 #include <Wire.h>
 
@@ -18,6 +19,14 @@ constexpr int16_t ANGLE_MIN = -90;
 constexpr int16_t ANGLE_MAX = 90;
 
 Adafruit_PWMServoDriver pca(0x40);
+
+// DevKit 단독(PCA9685 미장착)에서도 프로토콜/보간 로직을 테스트할 수 있게
+// 부재 시 I2C 쓰기만 생략하는 dry-run 모드. ACK/DONE 흐름은 동일하게 동작.
+bool pca_present = false;
+
+inline void pca_write(uint8_t ch, uint16_t pwm) {
+    if (pca_present) pca.setPWM(ch, 0, pwm);
+}
 
 struct ChannelState {
     int16_t start_deg = 0;
@@ -53,13 +62,21 @@ void servo_init() {
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
     Wire.setClock(400000);
 
-    pca.begin();
-    pca.setOscillatorFrequency(27000000);
-    pca.setPWMFreq(PCA_FREQ);
+    // 주소 probe로 장착 여부 판정
+    Wire.beginTransmission(0x40);
+    pca_present = (Wire.endTransmission() == 0);
+
+    if (pca_present) {
+        pca.begin();
+        pca.setOscillatorFrequency(27000000);
+        pca.setPWMFreq(PCA_FREQ);
+    } else {
+        emit_event_err(CmdResult::I2CFail, "PCA9685 absent - servo dry-run");
+    }
 
     for (uint8_t i = 0; i < NUM_CH; ++i) {
         channels[i] = ChannelState{};
-        pca.setPWM(i, 0, deg_to_pwm(0));
+        pca_write(i, deg_to_pwm(0));
     }
 }
 
@@ -85,14 +102,14 @@ void servo_tick() {
         if (!s.moving) continue;
         uint32_t elapsed = now - s.start_ms;
         if (elapsed >= s.duration_ms) {
-            pca.setPWM(i, 0, deg_to_pwm(s.target_deg));
+            pca_write(i, deg_to_pwm(s.target_deg));
             s.moving = false;
             continue;
         }
         float t = (float)elapsed / (float)s.duration_ms;
         float eased = ease(t);
         int16_t cur = s.start_deg + (int16_t)(eased * (s.target_deg - s.start_deg));
-        pca.setPWM(i, 0, deg_to_pwm(cur));
+        pca_write(i, deg_to_pwm(cur));
     }
 }
 
@@ -126,7 +143,7 @@ bool servo_leg_move(char side, int16_t angle_deg, uint16_t duration_ms) {
 void servo_stop_all() {
     for (uint8_t i = 0; i < NUM_CH; ++i) {
         channels[i].moving = false;
-        pca.setPWM(i, 0, deg_to_pwm(0));
+        pca_write(i, deg_to_pwm(0));
     }
 }
 

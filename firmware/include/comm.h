@@ -11,7 +11,6 @@ enum class CmdResult : uint8_t {
     ParseError = 1,
     OutOfRange = 2,
     I2CFail = 3,
-    Busy = 4,
     UnknownPose = 5,
 };
 

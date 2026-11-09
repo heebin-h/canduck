@@ -7,6 +7,8 @@
 #include "comm.h"
 #include "servo_ctrl.h"
 #include "poses.h"
+#include "motor.h"
+#include "vbat.h"
 
 using namespace canduck;
 
@@ -17,16 +19,13 @@ static void tick_telemetry() {
     uint32_t now = millis();
     if (now - last_vbat_ms < 1000) return;
     last_vbat_ms = now;
-    int raw = analogRead(PIN_VBAT_SENSE);
-    // ADC 12bit, 0~3.3V, 분압 20K/10K → 입력은 실제 V_bat * (10/30) = V_bat/3
-    // V_bat_mV = raw * 3300 / 4095 * 3
-    uint16_t mv = (uint16_t)((uint32_t)raw * 3300UL * 3UL / 4095UL);
-    emit_event_vbat(mv);
+    emit_event_vbat(vbat_read_mv());
 }
 
 void setup() {
     comm_init();
     servo_init();
+    motor_init();
     poses_init();
     // 부팅 직후 서보 출력 비활성. RPi가 ENABLE 1 보내면 active.
     servo_set_enable(false);

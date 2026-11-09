@@ -24,14 +24,17 @@ class Settings(BaseSettings):
     mqtt_keepalive: int = 60
     mqtt_client_id: str = "canduck-daemon"
 
-    # LCD
-    lcd_spi_bus: int = 0
-    lcd_spi_dev: int = 0
-    lcd_gpio_dc: int = 27
-    lcd_gpio_rst: int = 17
-    lcd_gpio_bl: int = 22
-    lcd_width: int = 240
-    lcd_height: int = 240
+    # Face (tkinter 창 — LCD 탈락으로 대체, 2026-07-12)
+    face_width: int = 240
+    face_height: int = 240
+    face_scale: int = 2  # 창 확대 배율
+    enable_face: bool = True
+
+    # GPIO (schematic-spec.md RPi 핀맵)
+    enable_gpio: bool = True
+    gpio_esp32_reset: int = 23
+    gpio_esp32_boot: int = 24
+    gpio_user_button: int = 4
 
     # Telemetry
     telemetry_poll_hz: float = 1.0

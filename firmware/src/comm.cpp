@@ -5,6 +5,8 @@
 #include "comm.h"
 #include "servo_ctrl.h"
 #include "poses.h"
+#include "motor.h"
+#include "vbat.h"
 
 namespace canduck {
 
@@ -47,6 +49,69 @@ void dispatch(char* line) {
         return;
     }
 
+    if (strcmp(cmd, "ARM") == 0) {
+        char* side_s = strtok(nullptr, " \t");
+        char* sh_s = strtok(nullptr, " \t");
+        char* el_s = strtok(nullptr, " \t");
+        char* dur_s = strtok(nullptr, " \t");
+        if (!side_s || !sh_s || !el_s || !dur_s) {
+            emit_event_err(CmdResult::ParseError, "ARM needs side shoulder elbow dur");
+            return;
+        }
+        if (servo_arm_move(side_s[0], atoi(sh_s), atoi(el_s), atoi(dur_s))) {
+            send_ack("ARM");
+        } else {
+            emit_event_err(CmdResult::OutOfRange, "ARM side/range");
+        }
+        return;
+    }
+
+    if (strcmp(cmd, "LEG") == 0) {
+        char* side_s = strtok(nullptr, " \t");
+        char* ang_s = strtok(nullptr, " \t");
+        char* dur_s = strtok(nullptr, " \t");
+        if (!side_s || !ang_s || !dur_s) {
+            emit_event_err(CmdResult::ParseError, "LEG needs side angle dur");
+            return;
+        }
+        if (servo_leg_move(side_s[0], atoi(ang_s), atoi(dur_s))) {
+            send_ack("LEG");
+        } else {
+            emit_event_err(CmdResult::OutOfRange, "LEG side/range");
+        }
+        return;
+    }
+
+    if (strcmp(cmd, "MOTOR") == 0) {
+        char* l_s = strtok(nullptr, " \t");
+        char* r_s = strtok(nullptr, " \t");
+        if (!l_s || !r_s) {
+            emit_event_err(CmdResult::ParseError, "MOTOR needs left right");
+            return;
+        }
+        if (motor_set(atoi(l_s), atoi(r_s))) {
+            send_ack("MOTOR");
+        } else {
+            emit_event_err(CmdResult::OutOfRange, "MOTOR -255~255");
+        }
+        return;
+    }
+
+    if (strcmp(cmd, "QUERY") == 0) {
+        char* what = strtok(nullptr, " \t");
+        if (!what) {
+            emit_event_err(CmdResult::ParseError, "QUERY needs imu/touch/vbat");
+            return;
+        }
+        if (strcmp(what, "vbat") == 0) {
+            emit_event_vbat(vbat_read_mv());
+        } else {
+            // imu/touch는 W4 (PCB + 센서 실장) 이후 구현
+            emit_event_err(CmdResult::I2CFail, "not implemented until W4");
+        }
+        return;
+    }
+
     if (strcmp(cmd, "POSE") == 0) {
         char* name = strtok(nullptr, " \t");
         if (!name) {
@@ -62,7 +127,9 @@ void dispatch(char* line) {
     }
 
     if (strcmp(cmd, "STOP") == 0) {
+        poses_abort();  // 시퀀스부터 끊어야 다음 tick에 키프레임이 재발사되지 않음
         servo_stop_all();
+        motor_stop();
         send_ack("STOP");
         return;
     }
@@ -73,7 +140,9 @@ void dispatch(char* line) {
             emit_event_err(CmdResult::ParseError, "ENABLE needs 0/1");
             return;
         }
-        servo_set_enable(atoi(arg) != 0);
+        bool en = atoi(arg) != 0;
+        servo_set_enable(en);
+        if (!en) motor_stop();  // OE#는 서보만 게이트 — 모터는 여기서 정지
         send_ack("ENABLE");
         return;
     }

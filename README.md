@@ -7,9 +7,10 @@
 ## 현재 단계
 
 - [x] 인터뷰 / 스코프 확정 (최대 스코프 — 머리 모션 / 두통포즈 / 팔 / 보행)
-- [x] HW 플랫폼: RPi 5 8GB + 자체 설계 PCB 2장 (Board A 전원, Board B HAT)
-- [ ] **W0** — 부품 발주, KiCad 셋업, 외형 모델링 학습 시작
-- [ ] W1~W2 — schematic + PCB layout + JLCPCB 발주
+- [x] HW 플랫폼: **RPi 4 (보유분)** + 자체 설계 PCB 2장 (Board A 전원, Board B HAT) — 2026-07-12 RPi5→RPi4 변경
+- [x] BOM 최종 확정 (2026-07-12, `docs/reports/W0-T02e-order-final.md`)
+- [ ] **W0** — 배치 1 결제(heebin), KiCad 9 셋업, 외형 모델링 학습 시작
+- [ ] W1~W2 — schematic + PCB layout + JLCPCB 발주 (전량 SMT 어셈블리)
 - [ ] W3~W12 — 펌웨어/호스트/통합
 
 상세 일정: [`docs/roadmap.md`](docs/roadmap.md)
@@ -41,12 +42,12 @@ canduck/
 
 | 항목 | 결정 |
 |---|---|
-| 메인 보드 | RPi 5 8GB + 액티브 쿨러 |
+| 메인 보드 | **RPi 4 (보유분)** — 2026-07-12 변경, 전원 설계 무변경·HAT 호환 (`docs/reports/W0-T02e-order-final.md`) |
 | 모터 컨트롤러 | ESP32-S3 (HAT 온보드, UART로 RPi와 연결) |
-| PCB | 2장 분할 (Power / HAT), 4-layer, JLCPCB |
-| 회로 설계 도구 | KiCad |
+| PCB | 2장 분할 (Power / HAT), 4-layer, JLCPCB **전량 SMT 어셈블리** (2026-07-12) |
+| 회로 설계 도구 | KiCad 9 |
 | 얼굴 디스플레이 | Waveshare 1.28" Round LCD (240×240, SPI) |
-| 배터리 | 2S 리포 7.4V 5000mAh + BMS |
+| 배터리 | 2S 리포 7.4V 5000mAh + BMS — **보류** (v1은 벤치 PSU 급전, 이동 운용 필요 시 도입) |
 | 보행 방식 | 캠워커 또는 휠+다리 스윙 (W7에 결정) |
 | 외형 모델링 | 본인이 Blender로 직접 (stylized chibi character workflow 학습) |
 
