@@ -70,6 +70,7 @@ class TkFaceDisplay:
         root.title("canduck")
         root.geometry(f"{w}x{h}")
         root.resizable(False, False)
+        root.configure(bg="#ffdcec")  # 첫 프레임 전 빈 창도 파스텔 배경
         label = tk.Label(root, bd=0)
         label.pack(fill="both", expand=True)
         photo_ref: list = [None]  # PhotoImage GC 방지 참조 홀더
@@ -83,7 +84,8 @@ class TkFaceDisplay:
             if frame is None:
                 root.destroy()
                 return
-            img = frame.resize((w, h), Image.NEAREST)
+            # 안티앨리어싱된 파스텔 표정 → NEAREST면 계단이 생겨 LANCZOS (표정 전환 시에만 호출, 비용 무시 가능)
+            img = frame.resize((w, h), Image.Resampling.LANCZOS)
             photo = ImageTk.PhotoImage(img)
             photo_ref[0] = photo
             label.configure(image=photo)
