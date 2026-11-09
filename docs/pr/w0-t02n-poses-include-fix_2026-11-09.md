@@ -36,5 +36,6 @@ src/poses.cpp:27:10: error: 'CH_HEAD_YAW' was not declared in this scope
 
 ## Merge 후 남는 것
 - **문서 stale 정합화** (보고서 §3) — `docs/architecture.md`, `docs/roadmap.md`, `host/systemd/canduck.env.example`, `host/pyproject.toml` description, `hardware/parts.md` 구버전 배치 표.
+- **W1 설계 미결** — J_A4 6→8핀, Board B I2S·앰프·J_B3/B4/B6 삭제 (보고서 §3)
 - **heebin** — 배치 1 결제 여부 확인 → `parts.md` 체크리스트 반영, 벤치 PSU 보유 확인, KiCad 9 설치, roadmap 시작일 재지정.
 - 그 다음 W1 착수: `w1/t03-pcb-schematic`.
