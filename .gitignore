@@ -36,3 +36,6 @@ fp-info-cache
 # Build artifacts
 assets/3d/build/
 hardware/gerber/
+
+# CAD 생성물 (hardware/cad 스크립트로 재생성)
+hardware/models/out/

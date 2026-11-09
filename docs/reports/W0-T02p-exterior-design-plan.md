@@ -70,11 +70,13 @@
 
 ### P0 — CAD 환경 준비 (Claude)
 
-- [ ] `hardware/cad/` Python 3.12 venv 생성 (시스템 Python 3.14 — CadQuery/OCP wheel 지원 미확인이라 3.12 고정)
-- [ ] cadquery, trimesh, manifold3d, numpy, pyyaml 설치
-- [ ] 렌더러 확보 (형상을 PNG로 뽑아 Claude가 육안 검증할 수단)
-- [ ] 샘플 박스 생성 → STL export → 렌더 PNG 확인
-- [ ] Bambu Studio 설치 여부 확인 (heebin)
+- [x] `hardware/cad/` Python 3.12 venv 생성 (시스템 Python 3.14 — CadQuery/OCP wheel 지원 미확인이라 3.12 고정). `uv sync` (2026-11-10)
+- [x] cadquery 2.8.0, trimesh 5.2.0, manifold3d, numpy 2.5.4, pyyaml, matplotlib 설치
+- [x] 렌더러 확보 — `hardware/cad/src/render.py` (matplotlib, headless). 한계: painter's algorithm이라 복잡한 형상은 면 정렬 오류 가능 → 내부 검증은 단면(slice) 이미지 병행
+- [x] 스모크 테스트 `hardware/cad/src/p0_smoke.py`: CadQuery 생성(필렛·포켓·홀) → STEP/STL → watertight 확인 → manifold3d boolean → PNG. 부피 7106.8 → 6966.3mm³ (손계산 7106 / Ø6×5mm 차감 141과 일치)
+- [x] Bambu Studio 설치 확인 — 02.05.00.66 (`/Applications/BambuStudio.app`)
+- [ ] CLI 자동 슬라이싱 — **실패, P8로 이관**: 시스템 preset 직접 로드 시 segfault(exit 139), 상속 체인 평탄화 후에는 `process not compatible with printer`(exit 239)
+- [ ] 샘플 STL GUI 슬라이싱 확인 (heebin) — `hardware/models/out/p0/smoke_cut.stl`을 Bambu Studio에서 P1S·PETG로 슬라이스
 
 **게이트**: 샘플 STL이 Bambu Studio에서 에러 없이 슬라이싱된다.
 
@@ -171,6 +173,7 @@
 - [ ] 파츠별 출력 방향 지정 (하중 방향 ⟂ 레이어, 서포트 최소)
 - [ ] 전 파츠 watertight·벽 두께 검사
 - [ ] Bambu Studio 슬라이싱: 시간·재료·서포트 위치 리포트 (`reports/P8-slice.md`)
+- [ ] (P0 이관) Bambu Studio CLI 자동 슬라이싱 — preset 호환성 해결 또는 GUI에서 export한 user preset 사용
 - [ ] 파츠 목록 + 재료 + 수량 + 조립 순서 표
 
 **게이트**: 완료 기준 1·2 충족.
