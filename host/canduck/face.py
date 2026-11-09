@@ -178,9 +178,13 @@ def _face_happy(p: _Pen) -> None:
 def _face_sleepy(p: _Pen) -> None:
     for sx in (-1, 1):
         x = sx * _EYE_X
-        p.d.chord(p.box(x - 13, -18, x + 13, 10), 0, 180, fill=_INK)  # 반쯤 감긴 눈
-        p.line([(x - 15, -4), (x + 15, -4)], 3.5, _INK)
-        p.circle(x - 4, 2, 2.6, _WHITE)
+        p.d.ellipse(p.box(x - 13, -16, x + 13, 12), fill=_INK)
+        # 무거운 눈꺼풀: 가운데가 살짝 처진 곡선 위쪽을 지움(투명 덮어쓰기).
+        # 일자는 시큰둥, 바깥 기울임은 울상으로 읽혀서 대칭 곡선으로.
+        lid = [(x + dx, -1 + 3 * (1 - (dx / 16) ** 2)) for dx in range(-16, 17, 2)]
+        p.d.polygon([p.xy(x - 16, -30), p.xy(x + 16, -30)] + [p.xy(*pt) for pt in reversed(lid)], fill=(0, 0, 0, 0))
+        p.line(lid, 3.5, _INK)
+        p.circle(x - 4, 6, 2.4, _WHITE)
     _blush(p, (255, 138, 176, 70))
     p.d.ellipse(p.box(-5, 26, 5, 38), outline=_INK, width=p.w(3))  # 하품
     _sparkle(p, 84, -70, 6, (255, 255, 255, 200))
