@@ -2,6 +2,7 @@
 // FSM은 RPi 측에서 운영, 여기는 단순 시퀀스 플레이어.
 
 #include "poses.h"
+#include "pins.h"
 #include "servo_ctrl.h"
 #include "comm.h"
 #include <string.h>
