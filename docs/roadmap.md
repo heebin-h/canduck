@@ -32,6 +32,30 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
 
 ---
 
+### W0-T02o 실보행 전환 (2026-11-10 결정)
+
+**목표**: 휠+스윙 → 2-DOF/다리 실보행(고관절 yaw + 발목 roll)으로 하드웨어·문서·펌웨어를 정합. 근거·계산: `docs/reports/W0-T02o-walking-redesign.md`. **이 섹션 완료 전 배치 1 결제 보류.**
+
+- [x] 보행 방식 결정 — D. 2-DOF 실보행 (heebin, 2026-11-10)
+- [x] 재설계 결정 문서 작성 (`docs/reports/W0-T02o-walking-redesign.md`)
+- [ ] 다리 서보 최종 선정 (권장 DS3225) — 국내/Ali 단가·재고 조사
+- [ ] 6V_LEG 벅 선정 — Pololu D24V150F6 존재·스펙 확인 (미확인)
+- [ ] Q1(IRLML6402)·F1(10A) 입력 보호 정격 재검토 — datasheet 확인
+- [ ] 3-in-1 카메라 질량·크기 확인 → 머리/몸통 배치 결정
+- [ ] CAD 도구 확정 (권장 CadQuery)
+- [ ] `hardware/parts.md` 갱신 (모션 표, N20·TB6612 삭제, 6V_LEG 벅, 배터리 보류 해제, 외주 출력 삭제)
+- [ ] `hardware/power-budget.md` 6V_LEG 레일 + 입력 측 재산정
+- [ ] `hardware/schematic-spec.md` Board A 레일 추가 / Board B 서보 전원 2계통 / 모터 회로 삭제
+- [ ] `firmware/include/pins.h` CH6~9 재할당 + MOTOR 핀 삭제, `motor.cpp`·`>MOTOR` 제거
+  - [ ] `pio run` 빌드 확인
+- [ ] `docs/architecture.md` `walking` 상태 정의 갱신 (gait + IMU 넘어짐 감지)
+- [ ] P1S 공차 쿠폰 출력 (서보 포켓·베어링 압입, PETG) — 서보 입고 후
+  - [ ] 실기 확인
+- [ ] 골격 v0 CAD (골반·발목 브래킷·링크·몸통 측판·배터리 트레이)
+- [ ] 다리 서보 4개 스톨 전류·토크 실측 → §3 토크 산정 갱신
+
+---
+
 ### W1 — Schematic 설계 (1주)
 
 **목표**: Board A + Board B schematic 완성, ERC pass.
@@ -179,7 +203,9 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
 
 **목표**: 보행 방식 결정 + 기구 가조립.
 
-- [ ] 옵션 평가:
+> 2026-11-10: 옵션 평가는 W0-T02o에서 **D. 2-DOF 실보행**으로 종결. 아래 A~C·휠·`motor.cpp` 항목은 W0-T02o 문서 갱신 시 gait/IMU 기준으로 재작성 예정.
+
+- [x] 옵션 평가 (→ D 확정):
   - A. 캠워커 (4-bar linkage) — 1 모터로 다리 2개 교차 운동
   - B. 휠 +다리 스윙 — 휠은 추진, 다리는 연출
   - C. 옴니휠 4개 (메카넘) — 자유 이동, 다리 외관은 고정
@@ -221,7 +247,7 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
   - [ ] 정전식 터치 패드 위치 (정수리, 등)
   - [ ] 케이블 통과 홀
 - [ ] STL export, Bambu Studio 또는 PrusaSlicer로 슬라이싱
-- [ ] 출력 외주 발주 (PLA 권장, 본체는 0.2mm 레이어)
+- [ ] ~~출력 외주 발주~~ → 보유 Bambu Lab P1S로 직접 출력 (2026-11-10, W0-T02o §5: 골격 PETG / 외피 PLA / 발바닥 TPU)
 - [ ] 출력 대기 (~1주)
 
 **산출물**: 슬라이싱 g-code 또는 외주 발주 영수증.
