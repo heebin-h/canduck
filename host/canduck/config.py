@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     # Behavior
     idle_to_sleepy_sec: int = 600
     sleepy_to_sleep_sec: int = 60
+    # 포즈 없는 일시 상태 → idle 복귀 (DONE이 오지 않으므로 타이머로 복귀, architecture.md FSM 표)
+    surprised_sec: float = 1.0
+    listening_sec: float = 5.0
     headache_cooldown_sec: int = 10
 
     # Voice

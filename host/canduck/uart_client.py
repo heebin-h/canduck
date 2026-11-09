@@ -28,9 +28,14 @@ class UartClient:
         self._writer: asyncio.StreamWriter | None = None
         self._handlers: list[EventHandler] = []
         self._read_task: asyncio.Task | None = None
+        self._on_disconnect: Callable[[], Awaitable[None]] | None = None
 
     def add_handler(self, handler: EventHandler) -> None:
         self._handlers.append(handler)
+
+    def set_disconnect_handler(self, handler: Callable[[], Awaitable[None]]) -> None:
+        """EOF(장치 분리 등) 시 1회 호출. 재연결은 하지 않음 — 호출 측이 결정."""
+        self._on_disconnect = handler
 
     async def connect(self) -> None:
         self._reader, self._writer = await serial_asyncio.open_serial_connection(
@@ -66,8 +71,15 @@ class UartClient:
                 await asyncio.sleep(0.5)
                 continue
             if not raw:
-                await asyncio.sleep(0.05)
-                continue
+                # readline()이 b""면 EOF(장치 분리/포트 닫힘) — 기존처럼 sleep 후 재시도하면
+                # 영원히 빈 루프만 돌고 아무도 장애를 모른다.
+                log.error("uart_eof", device=settings.uart_device)
+                if self._on_disconnect:
+                    try:
+                        await self._on_disconnect()
+                    except Exception:
+                        log.exception("uart_disconnect_handler_failed")
+                return
             try:
                 line = raw.decode("ascii", errors="replace").strip()
             except Exception:
