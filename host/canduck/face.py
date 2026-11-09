@@ -35,7 +35,8 @@ def render_expression(expr: Expression) -> Image.Image:
     asset_path = ASSETS_DIR / f"{expr.value}.png"
     size = (settings.face_width, settings.face_height)
     if asset_path.exists():
-        return Image.open(asset_path).convert("RGB").resize(size)
+        # 직접 그린 도트 PNG 가정 — 보간하면 도트 경계가 뭉개지므로 NEAREST
+        return Image.open(asset_path).convert("RGB").resize(size, Image.Resampling.NEAREST)
     return _draw_fallback(expr, size)
 
 
@@ -66,6 +67,7 @@ _M_SMILE = ["#..#", ".##."]
 _M_OPEN = ["######", "#oooo#", ".####."]
 _M_O = [".##.", "#..#", "#..#", ".##."]
 _M_DOT = ["##", "##"]
+_M_DASH = ["##"]
 _M_WAVE = [".##..##.", "#..##..#"]
 _M_FLAT = ["####"]
 _HEART = ["oo.oo", "ooooo", ".ooo.", "..o.."]
@@ -89,7 +91,7 @@ _FACES: dict[Expression, list] = {
     Expression.HAPPY: [(_EYE_ARCH, _L, 7), (_EYE_ARCH, _R, 7), *_CHEEKS, (_M_OPEN, 7, 12),
                        (_HEART, 14, 1), (_HEART_S, 2, 3)],
     Expression.SLEEPY: [(_EYE_LID, _L, 8), (_EYE_LID, _R, 8), *_CHEEKS, (_M_DOT, 9, 13), (_Z_S, 15, 3)],
-    Expression.SLEEP: [(_EYE_CLOSED, _L, 8), (_EYE_CLOSED, _R, 8), *_CHEEKS, (["##"], 9, 13),
+    Expression.SLEEP: [(_EYE_CLOSED, _L, 8), (_EYE_CLOSED, _R, 8), *_CHEEKS, (_M_DASH, 9, 13),
                        (_Z_S, 12, 4), (_Z_L, 15, 1),
                        (_STAR, 2, 3), (_STAR, 5, 1), (_STAR, 17, 16), (_STAR, 2, 16)],
     Expression.HEADACHE: [(_EYE_X, 5, 7), (_EYE_X, 12, 7), (_M_WAVE, 6, 12), (_DROP, 15, 2)],
