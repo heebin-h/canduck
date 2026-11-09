@@ -56,6 +56,25 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
 
 ---
 
+### W0-T02p 외형 설계 (2026-11-10 계획)
+
+**목표**: heebin 외형(속이 꽉 찬 일체형) → 셸·골격·마운트 → P1S 출력. 단계별 상세 체크리스트·게이트: `docs/reports/W0-T02p-exterior-design-plan.md` (상세 항목은 그 문서에서 체크).
+
+- [x] 작업 계획서 작성
+- [ ] P0 CAD 환경 준비 (Claude)
+- [ ] P1 부품 치수 DB `hardware/cad/params/parts.yaml` (Claude)
+- [ ] P2 공차 쿠폰 설계(Claude) → 출력·실측(heebin)
+- [ ] P3 외형 블록아웃 v0 (heebin, Blender)
+- [ ] P4 공간·무게중심 검증 (Claude)
+- [ ] P5 관절 축·분할선 제안 (Claude) → 승인 (heebin)
+- [ ] P3' 외형 디테일 v1 (heebin) + P4 재검증
+- [ ] P6 셸화
+- [ ] P7 골격·마운트 v0 (CadQuery)
+- [ ] P8 결합·분할·출력 준비
+- [ ] P9 출력·가조립·실측 → v1
+
+---
+
 ### W1 — Schematic 설계 (1주)
 
 **목표**: Board A + Board B schematic 완성, ERC pass.
