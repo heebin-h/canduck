@@ -75,7 +75,7 @@ firmware/host 전 파일을 리뷰했다. 상세 표는 PR 본문(`docs/pr/w0-t0
 | 중간 | `host/canduck/fsm.py` | surprised/listening 고착 (DONE 없음) | 수정 — 타이머 복귀 |
 | 중간 | `host/canduck/daemon.py` | ERROR에서 서보 토크 유지, brown-out BOOT 시 재활성화 | 수정 |
 | 중간 | `host/canduck/daemon.py` | 늦은 DONE이 새 상태를 idle로 되돌림 | 수정 |
-| 중간 | `host/canduck/uart_client.py` | EOF 빈 루프 무한 반복, 장애가 드러나지 않음 | 수정 — exit 1 → systemd 재기동 |
+| 중간 | `host/canduck/uart_client.py` | EOF 빈 루프 무한 반복, 장애가 드러나지 않음 | 수정 — exit 1 → systemd 재기동. ⚠️ 실제 장치 분리(예외) 경로는 미처리였음 → §8 재수정 (`a791541`) |
 | 중간 | `firmware/src/servo_ctrl.cpp` | STOP 후 / 보간 중 새 명령 시 서보 점프 | 수정 (`fd7d734`) |
 | 낮음 | `firmware/src/comm.cpp` | atoi 랩어라운드·비숫자 통과, ARM/LEG 범위 미검사, 오버플로 꼬리 처리 | 수정 |
 | 낮음 | `firmware/src/poses.cpp` | DONE 포맷 명세 불일치 | 수정 |
@@ -90,3 +90,21 @@ firmware/host 전 파일을 리뷰했다. 상세 표는 PR 본문(`docs/pr/w0-t0
 - `gpiozero`가 pyproject 의존성에 없다 — venv가 `--system-site-packages`가 아니면 RPi에서도 mock으로 조용히 강등된다.
 - DevKit 단독으로 **데몬**을 돌리면 분압 미연결 ADC 플로팅 값이 `vbat_critical_mv`(6600) 미만으로 읽힐 수 있다 → ERROR(서보 비활성). `canduck-smoke`에는 영향 없음.
 - 전역 `pio`(Python 3.14) `intelhex` 누락 — `~/.platformio/penv/bin/pio` 사용.
+
+## 8. 후속 리뷰 + 반영 (2026-11-10, 같은 브랜치)
+
+§7 반영분을 다시 리뷰했다. 핵심은 §7의 UART 단절 수정이 실제 장애 경로에서 동작하지 않았다는 것. §7의 "11/11 PASS"는 `b""` EOF만 재현한 시나리오였다.
+
+| 심각도 | 위치 | 결함 | 상태 |
+|---|---|---|---|
+| 높음 | `host/canduck/uart_client.py` `_read_loop` | 장치 분리 시 readline이 EOF가 아니라 `SerialException`을 던짐(pyserial-asyncio `_read_ready` → `_close(exc=e)` → `set_exception`, 이후 같은 예외 영구 재발생). 기존 except가 0.5초 재시도만 해 disconnect 미호출·무한 로그 | 수정 (`a791541`) — 읽기 예외도 단절 처리, 64KiB 초과 라인(ValueError)만 계속 |
+| 중간 | `host/canduck/fsm.py` | headache/happy가 DONE에만 의존 — ESP32 리셋·DONE 유실 시 고착 | 수정 (`e3e32f8`) — `CANDUCK_POSE_DONE_TIMEOUT_SEC` 15초 |
+| 중간 | `docs/architecture.md` | error 트리거 "UART 단절(EOF)" — 운용 `/dev/ttyAMA0`(GPIO UART)은 EOF가 나지 않음 | 문서 정정 (`a9e5980`) — 개발 구성 한정 명시, PING 감시 W3 |
+| 낮음 | `host/canduck/daemon.py` | 단절 시 stop 태스크 참조 미보관, docstring LCD 잔재 | 수정 (`518f671`) |
+| 낮음 | `host/canduck/face.py` | 자산 PNG bicubic 확대로 도트 뭉개짐 | 수정 (`449add4`) |
+
+**결정**: 표정 창 기본 비활성(`CANDUCK_ENABLE_FACE=false`) — v1 감정 표현은 본체 서보 포즈. 코드는 유지, 절차적 폴백은 도트 LCD 스타일. 캐릭터 얼굴은 heebin이 직접 그린 `assets/face/{expr}.png`로만 (§IP 경계, `CLAUDE.md` §3).
+
+검증: StreamReader 시뮬레이션 3경로(예외/EOF/초과 라인), FSM 타임아웃·정상 DONE·ERROR 유지, `enable_face` 기본값·env 파싱, 표정 9종 렌더. 실기(USB 분리 → exit 1·재기동), RPi4 표정 창 실표시는 미실행.
+
+**고치지 않은 것**: ESP32 무응답 감지(PING 감시) — 기능 추가라 W3. §7 미수정 목록은 그대로 유효.
