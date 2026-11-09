@@ -17,12 +17,12 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
 
 **목표**: 발주 완료, 개발 환경 가동, Blender 학습 착수.
 
-- [ ] 부품 1차 발주 (랩 도구 + RPi5 + dev board + 센서 모듈)
-- [ ] RPi 5 OS(Bookworm 64-bit) 설치, SSH/VNC 활성, hostname=`canduck`
+- [ ] 부품 1차 발주 — 배치 1 (`hardware/parts.md` 발주 실행 체크리스트. RPi4는 보유분)
+- [ ] RPi 4 OS(Bookworm 64-bit) 설치, SSH/VNC 활성, hostname=`canduck`
 - [ ] `mosquitto` 설치, 1883 LAN 한정 listener 설정
-- [ ] macOS에 KiCad 8.x 설치 + 한국어 부품 라이브러리 추가
+- [ ] macOS에 KiCad 9 설치 + 한국어 부품 라이브러리 추가
 - [ ] PlatformIO + VSCode 확장 설치
-- [ ] Python 3.12 venv, paho-mqtt, pyserial-asyncio, pygame, smbus2 의존성 확인
+- [ ] Python 3.12 venv, paho-mqtt, pyserial-asyncio, pillow, smbus2, python3-tk 의존성 확인
 - [ ] git remote (private) 셋업 또는 로컬 git만
 - [ ] Blender 학습 시작: 인터페이스 + sculpt + retopo 워크플로우 (Blender Guru, Grant Abbitt 일반 강좌)
 
@@ -42,10 +42,10 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
   - [ ] 충전 단자, 테스트 포인트, 출력 커넥터
   - [ ] ERC clean
 - [ ] KiCad 새 프로젝트 `canduck-hat` (Board B)
-  - [ ] RPi5 40핀 헤더 심볼 (`Raspberry_Pi_2_3` 호환 또는 직접 제작)
+  - [ ] RPi 40핀 헤더 심볼 (RPi4/5 동일 핀맵) (`Raspberry_Pi_2_3` 호환 또는 직접 제작)
   - [ ] ESP32-S3 모듈 + CH340N + USB-C
-  - [ ] PCA9685, MPR121, MPU6050, TCA9548A, PAM8403, TB6612FNG 배치
-  - [ ] 서보 커넥터 ×10, 모터 커넥터 ×2, LCD 커넥터, 마이크 커넥터, 스피커 커넥터
+  - [ ] PCA9685, MPR121, MPU6050, TCA9548A, TB6612FNG 배치 (PAM8403·I2S는 탈락 — 삭제 여부 W1 결정, parts.md)
+  - [ ] 서보 커넥터 ×10, 모터 커넥터 ×2 (LCD·마이크·스피커 커넥터는 품목 탈락 — 삭제 여부 W1 결정)
   - [ ] 확장 헤더 (I2C, UART, GPIO)
   - [ ] ERC clean
 
@@ -66,13 +66,12 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
   - [ ] 트레이스 폭 (전원 2~2.5mm)
   - [ ] DRC clean
 - [ ] Board B layout
-  - [ ] RPi5 헤더 핀맵 핀 1 정확히
+  - [ ] RPi 헤더 핀맵 핀 1 정확히
   - [ ] ESP32-S3 모듈 안테나 영역 클리어런스 (no copper under antenna)
   - [ ] 서보 커넥터를 보드 가장자리에 배치 (배선 정리)
-  - [ ] LCD 커넥터 위치 (외형 본체 내 LCD 위치와 맞물림 고려)
   - [ ] DRC clean
 - [ ] Gerber + drill + BOM + Pick&Place export
-- [ ] JLCPCB 업로드, 5장 발주, **stencil 동봉**
+- [ ] JLCPCB 업로드, 5장 발주, **전량 JLC 어셈블리** (자가 SMT·stencil 없음 — parts.md)
 - [ ] AliExpress SMT 부품 잔여분 발주 (캡, 저항, 커넥터, IC)
 
 **산출물**: 발주 완료. 추정 도착 W4 중반.
@@ -81,16 +80,15 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
 
 ---
 
-### W3 — LCD 얼굴 + 펌웨어 골격 (dev board) (1주)
+### W3 — 표정 창 + 펌웨어 골격 (dev board) (1주)
 
-**목표**: dev board(RPi5 + ESP32 DevKit + 노출 배선)로 LCD 얼굴 표정 6종 + UART 프로토콜 골격 동작.
+**목표**: dev board(RPi4 + ESP32 DevKit + 노출 배선)로 tkinter 표정 창 + UART 프로토콜 골격 동작. (LCD는 2026-07-12 탈락)
 
-- [ ] RPi5에 Waveshare LCD 연결 (점퍼로), `face.py` 표정 9종 렌더 확인
-- [ ] systemd `canduck-face.service` 부팅 시 자동 실행
+- [ ] RPi4 데스크탑 세션에서 `face.py` + `display_tk.py` 표정 9종 표시 확인
 - [ ] ESP32 dev board + PCA9685 점퍼 연결, 서보 1~2개로 PWM 동작 확인
 - [ ] UART 프로토콜 `>HEAD`, `>PING`, `<ACK`, `<PONG` 구현
 - [ ] `host/canduck/uart_client.py` asyncio 래퍼 + 라인 파서
-- [ ] `host/canduck/face.py` Pygame 또는 PIL 렌더 + LCD SPI 드라이버
+- [ ] `host/canduck/face.py` PIL 렌더 + `display_tk.py` tkinter 창
 - [ ] `host/canduck/fsm.py` 기본 상태 머신 (idle/listening/error)
 - [ ] `daemon.py` 메인 이벤트 루프, 표정 + UART 통합
 
@@ -123,18 +121,18 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
 
 ### W5 — Board B 브링업 + dev board 코드 이식 (1주)
 
-**목표**: HAT 보드 실장, RPi5에 장착, ESP32-S3 펌웨어 플래시 통과.
+**목표**: HAT 보드(JLC 어셈블리) 입고, RPi4에 장착, ESP32-S3 펌웨어 플래시 통과.
 
-- [ ] Board B 부품 실장 (수동 SMT, 핫에어로 IC)
-- [ ] RPi5에 HAT 장착 전 — 다시 short/저항 체크
-- [ ] HAT 단독 5V/3V3 공급 → I2C 디바이스 스캔 (RPi5 `i2cdetect`)
+- [ ] Board B 입고 검사 (JLC 어셈블리 — 스루홀·커넥터만 인두 작업)
+- [ ] RPi4에 HAT 장착 전 — 다시 short/저항 체크
+- [ ] HAT 단독 5V/3V3 공급 → I2C 디바이스 스캔 (RPi4 `i2cdetect`)
 - [ ] ESP32-S3 USB-C로 PlatformIO 첫 플래시
 - [ ] dev board용 코드를 HAT에 그대로 이식, 동작 확인
 - [ ] 서보 ×10 모두 PCA9685 통해 sweep 테스트
 - [ ] 모터 드라이버 + N20 휠 회전 확인
 - [ ] Board A → Board B 케이블 연결, 통합 전원 테스트
 
-**산출물**: HAT + RPi5 + Board A 통합 동작.
+**산출물**: HAT + RPi4 + Board A 통합 동작.
 
 **게이트**: HAT에 결함 발견 시 → 패치 와이어로 우회 가능한지 평가, 아니면 rev2.
 
@@ -144,10 +142,10 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
 
 **목표**: wake-word 응답, macOS 이벤트가 캔덕에 반영됨.
 
-- [ ] INMP441 I2S 마이크 연결, `arecord`로 raw 캡처 확인
+- [ ] USB 3-in-1 카메라(UAC 마이크) 연결, `arecord`로 raw 캡처 확인 (INMP441 탈락)
 - [ ] Picovoice Porcupine 계정 + 무료 wake-word 등록 ("hey canduck" 또는 한글)
 - [ ] `host/canduck/voice.py` pvporcupine 통합, wake-word 감지 시 FSM 트리거
-- [ ] PAM8403 + 스피커로 응답음 (WAV) 재생, `sounddevice`
+- [ ] 3-in-1 카메라 스피커로 응답음 (WAV) 재생, `sounddevice` (PAM8403·스피커 탈락)
 - [ ] `mqtt_client.py` paho-mqtt async 통합
 - [ ] macOS `canduck-agent` Python 스크립트
   - [ ] xcodebuild/cargo/npm exit code 감지 (shell wrapper 또는 git hook)
@@ -170,7 +168,7 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
   - [ ] t=500~1000ms: 양 손 머리 옆으로
   - [ ] t=1000~5000ms: 머리 격렬 흔들기, 팔은 고정
   - [ ] t=5000~5500ms: 천천히 팔 내림
-- [ ] 표정 동기: t=0에 LCD `headache` 전환, t=5500에 `idle`
+- [ ] 표정 동기: t=0에 표정 창 `headache` 전환, t=5500에 `idle`
 - [ ] 서보 토크 부족 확인 → 필요 시 MG996R 메탈기어 교체 (예비예산)
 
 **산출물**: 두통포즈 풀 시퀀스 동영상.
@@ -219,7 +217,7 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
   - [ ] 머리 분리 (서보 마운트 포함)
   - [ ] 팔 분리 (어깨/팔꿈치 관절 마운트)
   - [ ] 다리 분리 (스윙 서보 마운트, 휠 마운트)
-  - [ ] 얼굴 LCD 안착 베젤
+  - [ ] 3-in-1 카메라 마운트 (렌즈·마이크 개구부)
   - [ ] 정전식 터치 패드 위치 (정수리, 등)
   - [ ] 케이블 통과 홀
 - [ ] STL export, Bambu Studio 또는 PrusaSlicer로 슬라이싱
@@ -239,8 +237,7 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
 - [ ] 서보 마운트 확인, 출력물 끼움새 조정 (드릴/줄로 미세 조정)
 - [ ] PCB + 배터리 본체 내부 안착, 양면테이프 + 케이블 타이로 고정
 - [ ] 모든 서보 케이블 → PCA9685 커넥터 매핑 (라벨링)
-- [ ] LCD 안착, 백라이트 빛샘 차단 (검정 펠트 또는 EVA폼)
-- [ ] 마이크 위치 (입 근처 또는 정수리), 스피커 위치 (배 또는 등)
+- [ ] 3-in-1 카메라 위치 (시야 + 마이크·스피커 개구부)
 - [ ] 정전식 터치 패드 부착 (구리테이프 + MPR121 케이블)
 - [ ] 마지막 통합 점검 후 시동
 
@@ -286,8 +283,8 @@ W10 ─► W12:  보행 + 외형 마감 + 통합 시연
 | 보행 기구 1주 안에 미해결 | 중 | 보행 v2 | W8 게이트에서 즉시 결정, 폴리싱에 시간 재배분 |
 | 배터리 운영 시간 부족 | 중 | UX 저하 | 데스크탑 상시 충전 운영, 배터리는 백업 |
 | ESP32 펌웨어 OTA 실패 | 저 | USB-C로 폴백 | HAT에 USB-C 항상 노출 |
-| RPi5 발열 throttle | 저 | 응답 지연 | 액티브 쿨러 필수, ambient 30°C 이하 유지 |
-| 자가 SMT 실수 (IC 손상) | 중 | 부품 재구매 | 같은 IC 2~3개씩 발주, 핫에어 리워크 연습 |
+| RPi4 발열 throttle | 저 | 응답 지연 | 방열판 + 팬 (parts.md), ambient 30°C 이하 유지 |
+| JLC 어셈블리 결함·부품 재고 변동 | 중 | 재발주 지연 | 주문 전 JLC 부품 재고 확인, 5장 발주로 예비 확보 |
 
 ## 롤백 경로
 

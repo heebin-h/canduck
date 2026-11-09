@@ -59,10 +59,10 @@ DevKit 단독이면 부팅 직후 `< ERR 3 PCA9685 absent - servo dry-run` 배�
 < ACK ENABLE
 > POSE idle
 < ACK POSE
-< DONE idle            # 모든 서보 중립 완료 후
+< DONE POSE idle       # 모든 서보 중립 완료 후
 > POSE headache
 < ACK POSE
-< DONE headache        # ~5.5초 후
+< DONE POSE headache   # ~5.5초 후
 > POSE invalid
 < ERR 5 invalid
 ```

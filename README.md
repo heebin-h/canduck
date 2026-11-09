@@ -1,6 +1,6 @@
 # canduck
 
-개인 데스크탑 펫 프로젝트. 하이브리드 폼팩터(물리 본체 + LCD 얼굴), 음성/터치/PC 상태 연동.
+개인 데스크탑 펫 프로젝트. 물리 본체 + 표정 창(tkinter), 음성/터치/PC 상태 연동.
 
 > **사용 범위**: 개인 소장용. 외형 자산(STL/렌더)은 외부 공유·SNS 업로드·판매 안 함.
 
@@ -28,7 +28,7 @@ canduck/
 │   ├── platformio.ini
 │   ├── include/
 │   └── src/
-├── host/                      # RPi5 호스트 데몬 (Python)
+├── host/                      # RPi4 호스트 데몬 (Python)
 │   ├── canduck/
 │   ├── systemd/
 │   └── pyproject.toml
@@ -46,7 +46,7 @@ canduck/
 | 모터 컨트롤러 | ESP32-S3 (HAT 온보드, UART로 RPi와 연결) |
 | PCB | 2장 분할 (Power / HAT), 4-layer, JLCPCB **전량 SMT 어셈블리** (2026-07-12) |
 | 회로 설계 도구 | KiCad 9 |
-| 얼굴 디스플레이 | Waveshare 1.28" Round LCD (240×240, SPI) |
+| 얼굴 디스플레이 | tkinter 표정 창 (LCD 탈락 — 2026-07-12 품목 심사). 음성·영상은 USB 3-in-1 카메라 |
 | 배터리 | 2S 리포 7.4V 5000mAh + BMS — **보류** (v1은 벤치 PSU 급전, 이동 운용 필요 시 도입) |
 | 보행 방식 | 캠워커 또는 휠+다리 스윙 (W7에 결정) |
 | 외형 모델링 | 본인이 Blender로 직접 (stylized chibi character workflow 학습) |
