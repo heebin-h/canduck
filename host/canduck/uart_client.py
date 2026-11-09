@@ -59,6 +59,13 @@ class UartClient:
         await self._writer.drain()
         log.debug("uart_tx", line=line.strip())
 
+    async def _notify_disconnect(self) -> None:
+        if self._on_disconnect:
+            try:
+                await self._on_disconnect()
+            except Exception:
+                log.exception("uart_disconnect_handler_failed")
+
     async def _read_loop(self) -> None:
         assert self._reader is not None
         while True:
@@ -66,19 +73,20 @@ class UartClient:
                 raw = await self._reader.readline()
             except (asyncio.CancelledError, GeneratorExit):
                 raise
-            except Exception as exc:
-                log.exception("uart_read_error", error=str(exc))
-                await asyncio.sleep(0.5)
+            except ValueError as exc:
+                # 64KiB 초과 라인(LimitOverrun) — StreamReader가 버퍼를 비웠으므로 복구 가능
+                log.warning("uart_line_too_long", error=str(exc))
                 continue
+            except Exception as exc:
+                # 장치 분리 시 pyserial-asyncio는 reader에 SerialException을 set_exception →
+                # 이후 readline()이 같은 예외를 영구히 재발생. 재시도는 무한 로그 루프뿐이므로 EOF와 동일 처리.
+                log.error("uart_read_failed", device=settings.uart_device, error=str(exc))
+                await self._notify_disconnect()
+                return
             if not raw:
-                # readline()이 b""면 EOF(장치 분리/포트 닫힘) — 기존처럼 sleep 후 재시도하면
-                # 영원히 빈 루프만 돌고 아무도 장애를 모른다.
+                # readline()이 b""면 EOF(포트 닫힘) — sleep 후 재시도하면 빈 루프만 돌고 장애가 묻힌다.
                 log.error("uart_eof", device=settings.uart_device)
-                if self._on_disconnect:
-                    try:
-                        await self._on_disconnect()
-                    except Exception:
-                        log.exception("uart_disconnect_handler_failed")
+                await self._notify_disconnect()
                 return
             try:
                 line = raw.decode("ascii", errors="replace").strip()
