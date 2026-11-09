@@ -14,6 +14,20 @@ namespace {
 
 char line_buf[COMM_LINE_MAX];
 size_t line_len = 0;
+bool line_overflow = false;  // true면 다음 '\n'까지 버림
+
+// 정수 토큰 엄격 파싱. atoi와 달리 "abc"/"12x"는 실패, 범위 밖은 실패 (int16_t 랩어라운드 방지).
+bool parse_long(const char* s, long lo, long hi, long& out) {
+    if (!s || !*s) return false;
+    char* end = nullptr;
+    long v = strtol(s, &end, 10);
+    if (*end != '\0' || v < lo || v > hi) return false;
+    out = v;
+    return true;
+}
+
+constexpr long DEG_LO = INT16_MIN, DEG_HI = INT16_MAX;  // 각도 범위 판정은 servo_* 가 함
+constexpr long DUR_LO = 0, DUR_HI = UINT16_MAX;
 
 void send_ack(const char* original) {
     Serial.print("< ACK ");
@@ -38,9 +52,12 @@ void dispatch(char* line) {
             emit_event_err(CmdResult::ParseError, "HEAD needs yaw pitch dur");
             return;
         }
-        int yaw = atoi(yaw_s);
-        int pitch = atoi(pitch_s);
-        int dur = atoi(dur_s);
+        long yaw, pitch, dur;
+        if (!parse_long(yaw_s, DEG_LO, DEG_HI, yaw) || !parse_long(pitch_s, DEG_LO, DEG_HI, pitch) ||
+            !parse_long(dur_s, DUR_LO, DUR_HI, dur)) {
+            emit_event_err(CmdResult::ParseError, "HEAD bad number");
+            return;
+        }
         if (servo_head_move(yaw, pitch, dur)) {
             send_ack("HEAD");
         } else {
@@ -58,7 +75,13 @@ void dispatch(char* line) {
             emit_event_err(CmdResult::ParseError, "ARM needs side shoulder elbow dur");
             return;
         }
-        if (servo_arm_move(side_s[0], atoi(sh_s), atoi(el_s), atoi(dur_s))) {
+        long sh, el, dur;
+        if (!parse_long(sh_s, DEG_LO, DEG_HI, sh) || !parse_long(el_s, DEG_LO, DEG_HI, el) ||
+            !parse_long(dur_s, DUR_LO, DUR_HI, dur)) {
+            emit_event_err(CmdResult::ParseError, "ARM bad number");
+            return;
+        }
+        if (servo_arm_move(side_s[0], sh, el, dur)) {
             send_ack("ARM");
         } else {
             emit_event_err(CmdResult::OutOfRange, "ARM side/range");
@@ -74,7 +97,12 @@ void dispatch(char* line) {
             emit_event_err(CmdResult::ParseError, "LEG needs side angle dur");
             return;
         }
-        if (servo_leg_move(side_s[0], atoi(ang_s), atoi(dur_s))) {
+        long ang, dur;
+        if (!parse_long(ang_s, DEG_LO, DEG_HI, ang) || !parse_long(dur_s, DUR_LO, DUR_HI, dur)) {
+            emit_event_err(CmdResult::ParseError, "LEG bad number");
+            return;
+        }
+        if (servo_leg_move(side_s[0], ang, dur)) {
             send_ack("LEG");
         } else {
             emit_event_err(CmdResult::OutOfRange, "LEG side/range");
@@ -89,7 +117,12 @@ void dispatch(char* line) {
             emit_event_err(CmdResult::ParseError, "MOTOR needs left right");
             return;
         }
-        if (motor_set(atoi(l_s), atoi(r_s))) {
+        long l, r;
+        if (!parse_long(l_s, INT16_MIN, INT16_MAX, l) || !parse_long(r_s, INT16_MIN, INT16_MAX, r)) {
+            emit_event_err(CmdResult::ParseError, "MOTOR bad number");
+            return;
+        }
+        if (motor_set(l, r)) {
             send_ack("MOTOR");
         } else {
             emit_event_err(CmdResult::OutOfRange, "MOTOR -255~255");
@@ -164,16 +197,19 @@ void comm_loop() {
         if (c == '\r') continue;
         if (c == '\n') {
             line_buf[line_len] = '\0';
-            if (line_len > 0 && line_buf[0] == '>') {
+            if (!line_overflow && line_len > 0 && line_buf[0] == '>') {
                 dispatch(line_buf + 1);  // '>' 접두 제거
             }
             line_len = 0;
+            line_overflow = false;
             continue;
         }
+        if (line_overflow) continue;  // 넘친 라인의 나머지는 '\n'까지 폐기 (꼬리 오실행·ERR 반복 방지)
         if (line_len < COMM_LINE_MAX - 1) {
             line_buf[line_len++] = c;
         } else {
-            line_len = 0;  // 오버플로 시 라인 폐기
+            line_len = 0;
+            line_overflow = true;
             emit_event_err(CmdResult::ParseError, "line overflow");
         }
     }

@@ -61,7 +61,8 @@ class FSM:
         next_state = self._transition(cur, event)
         if next_state is None or next_state == cur:
             return
-        log.info("fsm_transition", from_=cur.value, to=next_state.value, event=event.value)
+        log.info("fsm_transition", from_=cur.value, to=next_state.value, trigger=event.value)
+        # ↑ 'event'는 structlog의 첫 위치 인자명이라 kwarg로 쓰면 TypeError → 전이 자체가 안 됐음
         self.state = next_state
         self.last_transition = time.monotonic()
         for handler in self._on_enter[next_state]:
@@ -105,6 +106,8 @@ class FSM:
                 return State.SLEEPY
             if cur == State.SLEEPY:
                 return State.SLEEP
+            if cur in (State.SURPRISED, State.LISTENING, State.HEADACHE, State.HAPPY):
+                return State.IDLE
             return None
         if event == Event.POSE_DONE:
             # 일시 상태에서는 idle로 복귀
@@ -113,12 +116,27 @@ class FSM:
             return None
         return None
 
+    def _timeout_for(self, state: State) -> float | None:
+        return {
+            State.IDLE: settings.idle_to_sleepy_sec,
+            State.SLEEPY: settings.sleepy_to_sleep_sec,
+            # 포즈가 없어 DONE이 오지 않는 상태 — 타이머 없으면 다음 외부 이벤트까지 고착
+            State.SURPRISED: settings.surprised_sec,
+            State.LISTENING: settings.listening_sec,
+            # 포즈 상태 — 정상이면 DONE이 먼저 오고, 안 오면(유실·ESP32 리셋) 강제 복귀
+            State.HEADACHE: settings.pose_done_timeout_sec,
+            State.HAPPY: settings.pose_done_timeout_sec,
+        }.get(state)
+
     async def idle_timer_loop(self) -> None:
-        """idle/sleepy 진입 후 일정 시간 경과 시 IDLE_TIMEOUT 이벤트 self-emit."""
+        """상태별 체류 시간 초과 시 IDLE_TIMEOUT 이벤트 self-emit.
+
+        surprised(1초)를 다루기 위해 0.5초 주기로 검사.
+        """
         while True:
-            await asyncio.sleep(5)
-            elapsed = time.monotonic() - self.last_transition
-            if self.state == State.IDLE and elapsed > settings.idle_to_sleepy_sec:
-                await self.handle(Event.IDLE_TIMEOUT)
-            elif self.state == State.SLEEPY and elapsed > settings.sleepy_to_sleep_sec:
+            await asyncio.sleep(0.5)
+            timeout = self._timeout_for(self.state)
+            if timeout is None:
+                continue
+            if time.monotonic() - self.last_transition > timeout:
                 await self.handle(Event.IDLE_TIMEOUT)
